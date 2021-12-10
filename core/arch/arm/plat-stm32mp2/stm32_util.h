@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <types_ext.h>
 
+#include <drivers/stm32mp2_rcc_util.h>
+
 static inline void stm32mp_register_secure_periph_iomem(vaddr_t base __unused)
 {
 }
