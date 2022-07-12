@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (BSD-3-Clause OR GPL-2.0+)
 /*
- * Copyright (c) 2021, STMicroelectronics
+ * Copyright (c) 2021-2023, STMicroelectronics
  */
 
 #include <drivers/clk.h>
@@ -25,7 +25,6 @@
 /* VRS bit 3 is unused because the voltage is not specified */
 #define STM32_VRS			GENMASK_32(5, 4)
 #define STM32_VRS_SHIFT			U(4)
-#define INV_VRS(x)			((~(x)) & STM32_VRS)
 
 #define STM32_VRR			BIT(3)
 #define STM32_HIZ			BIT(1)
@@ -36,6 +35,32 @@
 #define TIMEOUT_US_10MS			U(10 * 1000)
 #define TIMEOUT_US_1MS			U(1 * 1000)
 
+struct stm32_vrefbuf_compat_data {
+	const uint16_t *voltages;
+	uint8_t nb_voltages;
+	bool invert_voltages;
+};
+
+static const uint16_t stm32_vrefbuf_mp25_voltages[2] = {
+	U(1210), U(1500)
+};
+
+static const struct stm32_vrefbuf_compat_data stm32_vrefbuf_mp25 = {
+	.voltages = stm32_vrefbuf_mp25_voltages,
+	.nb_voltages = ARRAY_SIZE(stm32_vrefbuf_mp25_voltages),
+	.invert_voltages = false,
+};
+
+static const uint16_t stm32_vrefbuf_mp13_voltages[4] = {
+	U(1650), U(1800), U(2048), U(2500)
+};
+
+static const struct stm32_vrefbuf_compat_data stm32_vrefbuf_mp13 = {
+	.voltages = stm32_vrefbuf_mp13_voltages,
+	.nb_voltages = ARRAY_SIZE(stm32_vrefbuf_mp13_voltages),
+	.invert_voltages = true,
+};
+
 struct vrefbuf_regul {
 	char name[VREFBUF_REGULATOR_NAME_LEN];
 	struct io_pa_va base;
@@ -43,11 +68,7 @@ struct vrefbuf_regul {
 	struct clk *clock;
 	uint32_t pm_val;
 	uint64_t disable_timeout;
-};
-
-static const uint16_t stm32_vrefbuf_voltages[] = {
-	/* Matches resp. VRS = 011b, 010b, 001b, 000b */
-	1650, 1800, 2048, 2500,
+	struct stm32_vrefbuf_compat_data *comp_data;
 };
 
 static vaddr_t stm32mp_vrefbuf_base(struct vrefbuf_regul *vr)
@@ -133,12 +154,14 @@ static TEE_Result vrefbuf_get_voltage(const struct regul_desc *desc,
 
 	clk_enable(vr->clock);
 
-	index = io_read32(reg) & STM32_VRS;
-	index = INV_VRS(index) >> STM32_VRS_SHIFT;
+	if (vr->comp_data->invert_voltages)
+		index = ((~io_read32(reg)) & STM32_VRS) >> STM32_VRS_SHIFT;
+	else
+		index = (io_read32(reg) & STM32_VRS) >> STM32_VRS_SHIFT;
 
 	clk_disable(vr->clock);
 
-	*mv = stm32_vrefbuf_voltages[index];
+	*mv = vr->comp_data->voltages[index];
 
 	return TEE_SUCCESS;
 }
@@ -150,9 +173,12 @@ static TEE_Result vrefbuf_set_voltage(const struct regul_desc *desc,
 	uintptr_t reg = stm32mp_vrefbuf_base(vr) + STM32_VREFBUF_CSR;
 	uint8_t i = 0;
 
-	for (i = 0 ; i < ARRAY_SIZE(stm32_vrefbuf_voltages) ; i++) {
-		if (stm32_vrefbuf_voltages[i] == mv) {
-			uint32_t val = INV_VRS(i << STM32_VRS_SHIFT);
+	for (i = 0 ; i < vr->comp_data->nb_voltages ; i++) {
+		if (vr->comp_data->voltages[i] == mv) {
+			uint32_t val = i << STM32_VRS_SHIFT;
+
+			if (vr->comp_data->invert_voltages)
+				val = (~val) & STM32_VRS;
 
 			clk_enable(vr->clock);
 
@@ -172,10 +198,11 @@ static TEE_Result vrefbuf_set_voltage(const struct regul_desc *desc,
 static TEE_Result vrefbuf_list_voltages(const struct regul_desc *desc __unused,
 					uint16_t **levels, size_t *count)
 {
+	struct vrefbuf_regul *vr = (struct vrefbuf_regul *)desc->driver_data;
 	const uint16_t **vrefbuf = (const uint16_t **)levels;
 
-	*count = ARRAY_SIZE(stm32_vrefbuf_voltages);
-	*vrefbuf = stm32_vrefbuf_voltages;
+	*count = vr->comp_data->nb_voltages;
+	*vrefbuf = vr->comp_data->voltages;
 
 	return TEE_SUCCESS;
 }
@@ -240,7 +267,7 @@ static TEE_Result vrefbuf_pm(enum pm_op op, unsigned int pm_hint __unused,
 DECLARE_KEEP_PAGER(vrefbuf_pm);
 
 static TEE_Result stm32_vrefbuf_regulator_probe(const void *fdt, int node,
-						const void *comp_data __unused)
+						const void *comp_data)
 {
 	TEE_Result res = TEE_ERROR_GENERIC;
 	struct dt_node_info info = { };
@@ -277,6 +304,7 @@ static TEE_Result stm32_vrefbuf_regulator_probe(const void *fdt, int node,
 	vr->desc.ops = &vrefbuf_ops;
 	vr->desc.supply_name = "vdda";
 	vr->clock = clk;
+	vr->comp_data = (struct stm32_vrefbuf_compat_data *)comp_data;
 
 	res = regulator_register(&vr->desc, node);
 	if (res) {
@@ -291,7 +319,14 @@ static TEE_Result stm32_vrefbuf_regulator_probe(const void *fdt, int node,
 }
 
 static const struct dt_device_match vrefbuf_match_table[] = {
-	{ .compatible = "st,stm32mp13-vrefbuf" },
+	{
+		.compatible = "st,stm32mp25-vrefbuf",
+		.compat_data = (void *)&stm32_vrefbuf_mp25,
+	},
+	{
+		.compatible = "st,stm32mp13-vrefbuf",
+		.compat_data = (void *)&stm32_vrefbuf_mp13,
+	},
 	{ }
 };
 
