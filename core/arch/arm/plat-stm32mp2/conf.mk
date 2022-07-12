@@ -119,6 +119,7 @@ CFG_STM32_SHARED_IO ?= y
 CFG_STM32_STGEN ?= y
 CFG_STM32_TAMP ?= y
 CFG_STM32_UART ?= y
+CFG_STM32_VREFBUF ?= y
 
 # Default enable some test facitilites
 CFG_ENABLE_EMBEDDED_TESTS ?= y
