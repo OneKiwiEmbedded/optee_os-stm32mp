@@ -177,6 +177,10 @@
 	status = "okay";
 };
 
+&pka {
+	status = "okay";
+};
+
 &pwr {
 	status = "okay";
 
