@@ -160,3 +160,9 @@ endif
 
 # Default enable STPMIC2
 CFG_STPMIC2 ?= y
+
+# Watchdog
+CFG_WDT ?= $(CFG_STM32_IWDG)
+ifeq ($(CFG_WDT),y)
+$(call force,CFG_WDT_SM_HANDLER,y,Mandated by CFG_WDT)
+endif
