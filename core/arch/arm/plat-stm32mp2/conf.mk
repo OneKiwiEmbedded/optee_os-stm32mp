@@ -40,6 +40,7 @@ $(call force,CFG_DRIVERS_CLK_EARLY_PROBE,y)
 $(call force,CFG_STM32_FIREWALL,y)
 $(call force,CFG_STM32MP_CLK_CORE,y)
 $(call force,CFG_STM32MP25_CLK,y)
+$(call force,CFG_STM32MP25_RSTCTRL,y)
 $(call force,CFG_TEE_CORE_EMBED_INTERNAL_TESTS,n)
 
 ifneq ($(filter $(CFG_EMBED_DTB_SOURCE_FILE),$(flavorlist-1G)),)
@@ -79,3 +80,9 @@ CFG_STM32_EARLY_CONSOLE_UART ?= 2
 
 # Default disable external DT support
 CFG_EXTERNAL_DT ?= n
+
+# Enable reset control
+ifeq ($(CFG_STM32MP25_RSTCTRL),y)
+$(call force,CFG_DRIVERS_RSTCTRL,y)
+$(call force,CFG_STM32_RSTCTRL,y)
+endif
