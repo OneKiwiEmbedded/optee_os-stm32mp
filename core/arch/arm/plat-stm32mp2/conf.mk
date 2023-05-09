@@ -4,6 +4,19 @@ flavor_dts_file-257F_EV = stm32mp257f-ev.dts
 flavorlist-MP25 = $(flavor_dts_file-257F_DK) \
 		  $(flavor_dts_file-257F_EV)
 
+# Check if device-tree exist in OP-TEE source code, else search it in external
+# device tree repository
+ifeq ($(wildcard $(arch-dir)/dts/$(CFG_EMBED_DTB_SOURCE_FILE)),)
+# External device tree default path
+CFG_EXT_DTS ?= $(arch-dir)/dts/external-dt/optee
+ifneq ($(wildcard $(CFG_EXT_DTS)/$(CFG_EMBED_DTB_SOURCE_FILE)),)
+override dts-source-path := $(CFG_EXT_DTS)
+-include $(CFG_EXT_DTS)/conf.mk
+else
+$(error Cannot find DTS file $(CFG_EXT_DTS)/$(CFG_EMBED_DTB_SOURCE_FILE))
+endif
+endif
+
 ifneq ($(PLATFORM_FLAVOR),)
 ifeq ($(flavor_dts_file-$(PLATFORM_FLAVOR)),)
 $(error Invalid platform flavor $(PLATFORM_FLAVOR))
