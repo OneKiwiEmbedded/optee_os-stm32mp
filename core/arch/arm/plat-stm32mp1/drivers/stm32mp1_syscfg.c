@@ -199,6 +199,9 @@ static TEE_Result stm32mp_syscfg_enable_io_compensation(void)
 
 	enable_io_compensation(SYSCFG_CMPCR);
 
+	/* Make sure the write above is visible */
+	dsb();
+
 	return TEE_SUCCESS;
 }
 
@@ -207,6 +210,9 @@ driver_init(stm32mp_syscfg_enable_io_compensation);
 void stm32mp_set_io_comp_by_index(uint32_t index, bool state)
 {
 	int cmpcr_offset = SYSCFG_CMPSD1CR;
+
+	/* Make sure the previous operations are visible */
+	dsb();
 
 	assert(index < SYSCFG_IO_COMP_NB_IDX);
 
@@ -217,14 +223,23 @@ void stm32mp_set_io_comp_by_index(uint32_t index, bool state)
 		enable_io_compensation(cmpcr_offset);
 	else
 		disable_io_compensation(cmpcr_offset);
+
+	/* Make sure the write above is visible */
+	dsb();
 }
 
 void stm32mp_set_hslv_by_index(uint32_t index, bool state)
 {
 	assert(index < SYSCFG_HSLV_NB_IDX);
 
+	/* Make sure the previous operations are visible */
+	dsb();
+
 	io_write32(get_syscfg_base() + SYSCFG_HSLVEN0R +
 		   index * sizeof(uint32_t), state ? SYSCFG_HSLV_KEY : 0);
+
+	/* Make sure the write above is visible */
+	dsb();
 }
 
 static void enable_high_speed_mode_low_voltage(void)
