@@ -85,6 +85,8 @@ static TEE_Result pwr_set_state(const struct regul_desc *desc, bool enable)
 		if (!(io_read32(pwr_cr3) & ready_mask))
 			return TEE_ERROR_GENERIC;
 	} else {
+		/* Make sure the previous operations are visible */
+		dsb();
 		io_clrbits32(pwr_cr3, enable_mask);
 	}
 
