@@ -408,6 +408,8 @@ int32_t plat_scmi_clock_rates_by_step(unsigned int channel_id,
 
 	switch (scmi_id) {
 	case CK_SCMI_CPU1:		/* CPU1 */
+	case CK_SCMI_FLEXGEN_10:	/* SPI2 & SPI3 */
+	case CK_SCMI_FLEXGEN_16:	/* SPI1 */
 	case CK_SCMI_FLEXGEN_23:	/* SAI1 */
 	case CK_SCMI_FLEXGEN_24:	/* SAI2 */
 	case CK_SCMI_FLEXGEN_25:	/* SAI3 & SAI4 */
@@ -436,6 +438,8 @@ int32_t plat_scmi_clock_set_rate(unsigned int channel_id, unsigned int scmi_id,
 
 	switch (scmi_id) {
 	case CK_SCMI_CPU1:		/* CPU1 */
+	case CK_SCMI_FLEXGEN_10:	/* SPI2 & SPI3 */
+	case CK_SCMI_FLEXGEN_16:	/* SPI1 */
 	case CK_SCMI_FLEXGEN_23:	/* SAI1 */
 	case CK_SCMI_FLEXGEN_24:	/* SAI2 */
 	case CK_SCMI_FLEXGEN_25:	/* SAI3 & SAI4 */
