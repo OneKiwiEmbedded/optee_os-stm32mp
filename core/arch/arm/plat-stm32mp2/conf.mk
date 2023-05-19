@@ -94,6 +94,7 @@ CFG_STM32_RISAB ?= y
 CFG_STM32_RISAF ?= y
 CFG_STM32_RNG ?= y
 CFG_STM32_RTC ?= y
+CFG_STM32_SAES ?= y
 CFG_STM32_SERC ?= y
 CFG_STM32_SHARED_IO ?= y
 CFG_STM32_STGEN ?= y
@@ -112,6 +113,11 @@ CFG_STM32_EARLY_CONSOLE_UART ?= 2
 
 # Default disable external DT support
 CFG_EXTERNAL_DT ?= n
+
+# If any crypto driver is enabled, enable the crypto-framework layer
+ifeq ($(call cfg-one-enabled, CFG_STM32_SAES),y)
+$(call force,CFG_STM32_CRYPTO_DRIVER,y)
+endif
 
 # Default enable HWRNG PTA support
 CFG_HWRNG_PTA ?= y
