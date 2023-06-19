@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct regulator;
+struct rdev;
 
 /*!
  * \brief Platform regulator configuration.
