@@ -166,13 +166,16 @@ static TEE_Result stm32_ltdc_init(void *device)
 		goto err;
 	}
 
-	ret = stm32_pinctrl_set_secure_cfg(ldev->pinctrl_list, true);
-	if (ret) {
-		/* Restore pins to non-secure state, should not fail */
-		if (stm32_pinctrl_set_secure_cfg(ldev->pinctrl_list, false))
-			panic();
+	if (ldev->pinctrl_list) {
+		ret = stm32_pinctrl_set_secure_cfg(ldev->pinctrl_list, true);
+		if (ret) {
+			/* Restore pins to non-secure state, should not fail */
+			if (stm32_pinctrl_set_secure_cfg(ldev->pinctrl_list,
+							 false))
+				panic();
 
-		goto err;
+			goto err;
+		}
 	}
 
 	/* LTDC goes non-secure read, secure write */
@@ -230,10 +233,11 @@ static TEE_Result stm32_ltdc_final(void *device)
 	if (ret)
 		goto out;
 
-	ret = stm32_pinctrl_set_secure_cfg(ldev->pinctrl_list, false);
-	/* Restoring non-secure state for pins should not fail */
-	assert(ret == TEE_SUCCESS);
-
+	if (ldev->pinctrl_list) {
+		ret = stm32_pinctrl_set_secure_cfg(ldev->pinctrl_list, false);
+		/* Restoring non-secure state for pins should not fail */
+		assert(ret == TEE_SUCCESS);
+	}
 out:
 	clk_disable(ldev->clock);
 
@@ -478,9 +482,10 @@ static TEE_Result stm32_ltdc_probe(const void *fdt, int node,
 	itr_enable(ldev->itr0->it);
 	itr_enable(ldev->itr1->it);
 
-	res = stm32_pinctrl_dt_get_by_index(fdt, node, 0, &ldev->pinctrl_list);
-	if (res)
-		goto err2;
+	res = stm32_pinctrl_dt_get_by_index(fdt, node, 0,
+					    &ldev->pinctrl_list);
+	if (res && res != TEE_ERROR_ITEM_NOT_FOUND)
+		goto err3;
 
 	ltdc_dev.device = ldev;
 	display_register_device(&ltdc_dev);
@@ -489,9 +494,10 @@ static TEE_Result stm32_ltdc_probe(const void *fdt, int node,
 	stm32_ltdc_final(ldev);
 
 	return TEE_SUCCESS;
-err2:
+err3:
 	itr_free(ldev->itr1);
 	itr_free(ldev->itr0);
+err2:
 	clk_disable(ldev->clock);
 err1:
 	free(ldev);
