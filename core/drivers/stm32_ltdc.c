@@ -66,6 +66,7 @@ struct ltdc_device {
 #define GCR_LTDCEN		BIT(0)
 #define LTDC_BPCR_AHBP		GENMASK_32(27, 16)
 #define LTDC_BPCR_AVBP		GENMASK_32(10, 0)
+#define LTDC_LCR_LNBR		GENMASK_32(7, 0)
 #define LTDC_LXWHPCR_WHSTPOS	GENMASK_32(11, 0)
 #define LTDC_LXWHPCR_WHSPPOS	GENMASK_32(31, 16)
 #define LTDC_LXWVPCR_WVSTPOS	GENMASK_32(11, 0)
@@ -100,21 +101,25 @@ enum ltdc_pix_fmt {
 #define LXBFCR_BF2_PAXCA	0x007	/* 1 - (Pixel Alpha x Constant Alpha) */
 #define LXBFCR_BF2_CA		0x005	/* 1 - Constant Alpha */
 
-#define LAY_OFS(a)	(0x100 + (a))
-#define LTDC_L2RCR	LAY_OFS(0x108)
+#if defined(CFG_STM32MP25)
+#define LAY_OFS(a)	(3 * 0x100 + (a))
+#else
+#define LAY_OFS(a)	(2 * 0x100 + (a))
+#endif /* CFG_STM32MP25 */
+#define LTDC_LXRCR	LAY_OFS(0x08)
 #define LXCR_RCR_IMR	BIT(0)
 #define LXCR_RCR_VBR	BIT(1)
-#define LTDC_L2CR	LAY_OFS(0x10c)
+#define LTDC_LXCR	LAY_OFS(0x0c)
 #define LXCR_LEN	BIT(0)
-#define LTDC_L2WHPCR	LAY_OFS(0x110)
-#define LTDC_L2WVPCR	LAY_OFS(0x114)
-#define LTDC_L2PFCR	LAY_OFS(0x11c)
-#define LTDC_L2CACR	LAY_OFS(0x120)
-#define LTDC_L2DCCR	LAY_OFS(0x124)
-#define LTDC_L2BFCR	LAY_OFS(0x128)
-#define LTDC_L2CFBAR	LAY_OFS(0x134)
-#define LTDC_L2CFBLR	LAY_OFS(0x138)
-#define LTDC_L2CFBLNR	LAY_OFS(0x13c)
+#define LTDC_LXWHPCR	LAY_OFS(0x10)
+#define LTDC_LXWVPCR	LAY_OFS(0x14)
+#define LTDC_LXPFCR	LAY_OFS(0x1c)
+#define LTDC_LXCACR	LAY_OFS(0x20)
+#define LTDC_LXDCCR	LAY_OFS(0x24)
+#define LTDC_LXBFCR	LAY_OFS(0x28)
+#define LTDC_LXCFBAR	LAY_OFS(0x34)
+#define LTDC_LXCFBLR	LAY_OFS(0x38)
+#define LTDC_LXCFBLNR	LAY_OFS(0x3c)
 
 /* Timeout when polling on status */
 #define LTDC_TIMEOUT_US	U(100000)
@@ -134,30 +139,32 @@ static void dump_reg_ltdc(vaddr_t base)
 	DUMP_REG(LTDC_AWCR);
 	DUMP_REG(LTDC_TWCR);
 
-	DUMP_REG(LTDC_L2CR);
-	DUMP_REG(LTDC_L2WHPCR);
-	DUMP_REG(LTDC_L2WVPCR);
-	DUMP_REG(LTDC_L2PFCR);
-	DUMP_REG(LTDC_L2CACR);
-	DUMP_REG(LTDC_L2DCCR);
-	DUMP_REG(LTDC_L2BFCR);
-	DUMP_REG(LTDC_L2CFBAR);
-	DUMP_REG(LTDC_L2CFBLR);
-	DUMP_REG(LTDC_L2CFBLNR);
+	DUMP_REG(LTDC_LXCR);
+	DUMP_REG(LTDC_LXWHPCR);
+	DUMP_REG(LTDC_LXWVPCR);
+	DUMP_REG(LTDC_LXPFCR);
+	DUMP_REG(LTDC_LXCACR);
+	DUMP_REG(LTDC_LXDCCR);
+	DUMP_REG(LTDC_LXBFCR);
+	DUMP_REG(LTDC_LXCFBAR);
+	DUMP_REG(LTDC_LXCFBLR);
+	DUMP_REG(LTDC_LXCFBLNR);
 }
 #endif
 
 static TEE_Result stm32_ltdc_init(void *device)
 {
 	struct ltdc_device *ldev = device;
-	TEE_Result ret = TEE_SUCCESS;
+	TEE_Result ret = TEE_ERROR_GENERIC;
 	uint32_t gcr = 0;
 	const struct stm32_firewall_cfg sec_cfg[] = {
 		{ FWLL_SEC_RW | FWLL_NSEC_READ | FWLL_MASTER(0) },
 		{ }, /* Null terminated */
 	};
 
-	clk_enable(ldev->clock);
+	ret = clk_enable(ldev->clock);
+	if (ret)
+		panic("Cannot access LTDC clock");
 
 	gcr = io_read32(ldev->regs + LTDC_GCR);
 	if (!(gcr & GCR_LTDCEN)) {
@@ -205,10 +212,10 @@ static TEE_Result stm32_ltdc_final(void *device)
 		goto out;
 
 	/* Disable secure layer */
-	io_clrbits32(ldev->regs + LTDC_L2CR, LXCR_LEN);
+	io_clrbits32(ldev->regs + LTDC_LXCR, LXCR_LEN);
 
 	/* Reload configuration immediately. */
-	io_write32(ldev->regs + LTDC_L2RCR, LXCR_RCR_VBR);
+	io_write32(ldev->regs + LTDC_LXRCR, LXCR_RCR_VBR);
 
 	ldev->end_of_frame = false;
 
@@ -252,7 +259,7 @@ static TEE_Result stm32_ltdc_activate(void *device,
 {
 	struct ltdc_device *ldev = device;
 	paddr_t fb_pbase = virt_to_phys(fb->base);
-	TEE_Result ret = TEE_SUCCESS;
+	TEE_Result ret = TEE_ERROR_GENERIC;
 	uint32_t value = 0;
 	uint32_t x1 = 0;
 	uint32_t y1 = 0;
@@ -260,6 +267,10 @@ static TEE_Result stm32_ltdc_activate(void *device,
 	uint32_t height_crtc = 0;
 	uint32_t bpcr = 0;
 	uint32_t awcr = 0;
+
+	ret = clk_enable(ldev->clock);
+	if (ret)
+		panic("Cannot access LTDC clock");
 
 	if (!fb) {
 		ret = TEE_ERROR_GENERIC;
@@ -288,62 +299,66 @@ static TEE_Result stm32_ltdc_activate(void *device,
 	/* Configure the horizontal start and stop position */
 	value = (x0 + ((bpcr & LTDC_BPCR_AHBP) >> 16) + 1) |
 		((x1 + ((bpcr & LTDC_BPCR_AHBP) >> 16)) << 16);
-	io_clrsetbits32(ldev->regs + LTDC_L2WHPCR,
+	io_clrsetbits32(ldev->regs + LTDC_LXWHPCR,
 			LTDC_LXWHPCR_WHSTPOS | LTDC_LXWHPCR_WHSPPOS, value);
 
 	/* Configure the vertical start and stop position */
 	value = (y0 + (bpcr & LTDC_BPCR_AVBP) + 1) |
 		((y1 + (bpcr & LTDC_BPCR_AVBP)) << 16);
 
-	io_clrsetbits32(ldev->regs + LTDC_L2WVPCR,
+	io_clrsetbits32(ldev->regs + LTDC_LXWVPCR,
 			LTDC_LXWVPCR_WVSTPOS | LTDC_LXWVPCR_WVSPPOS, value);
 
 	/* Specifies the pixel format, hard coded */
-	io_clrbits32(ldev->regs + LTDC_L2PFCR, LTDC_LXPFCR_PF);
-	io_setbits32(ldev->regs + LTDC_L2PFCR, LXPFCR_PF_ARGB8888);
+	io_clrbits32(ldev->regs + LTDC_LXPFCR, LTDC_LXPFCR_PF);
+	io_setbits32(ldev->regs + LTDC_LXPFCR, LXPFCR_PF_ARGB8888);
 
 	/* Configure the default color values, hard coded */
-	io_clrbits32(ldev->regs + LTDC_L2DCCR,
+	io_clrbits32(ldev->regs + LTDC_LXDCCR,
 		     LTDC_LXDCCR_DCBLUE | LTDC_LXDCCR_DCGREEN |
 		     LTDC_LXDCCR_DCRED | LTDC_LXDCCR_DCALPHA);
-	io_setbits32(ldev->regs + LTDC_L2DCCR, 0x00FFFFFF);
+	io_setbits32(ldev->regs + LTDC_LXDCCR, 0x00FFFFFF);
 
 	/* Specifies the constant alpha value, hard coded. */
-	io_clrbits32(ldev->regs + LTDC_L2CACR, LTDC_LXCACR_CONSTA);
-	io_setbits32(ldev->regs + LTDC_L2CACR, 0xFF);
+	io_clrbits32(ldev->regs + LTDC_LXCACR, LTDC_LXCACR_CONSTA);
+	io_setbits32(ldev->regs + LTDC_LXCACR, 0xFF);
 
 	/* Specifies the blending factors, hard coded. */
-	io_clrbits32(ldev->regs + LTDC_L2BFCR, LXBFCR_BF2 | LXBFCR_BF1);
-	io_setbits32(ldev->regs + LTDC_L2BFCR,
+	io_clrbits32(ldev->regs + LTDC_LXBFCR, LXBFCR_BF2 | LXBFCR_BF1);
+	io_setbits32(ldev->regs + LTDC_LXBFCR,
 		     LXBFCR_BF1_PAXCA | LXBFCR_BF2_PAXCA);
 
 	/* Configure the color frame buffer start address. */
-	io_clrbits32(ldev->regs + LTDC_L2CFBAR, LTDC_LXCFBAR_CFBADD);
-	io_setbits32(ldev->regs + LTDC_L2CFBAR, fb_pbase);
+	io_clrbits32(ldev->regs + LTDC_LXCFBAR, LTDC_LXCFBAR_CFBADD);
+	io_setbits32(ldev->regs + LTDC_LXCFBAR, fb_pbase);
 
 	/* Configure the color frame buffer pitch in byte, assuming ARGB32. */
 	value =	((fb->width * 4) << 16) | (((x1 - x0) * 4)  + 3);
-	io_clrsetbits32(ldev->regs + LTDC_L2CFBLR,
+	io_clrsetbits32(ldev->regs + LTDC_LXCFBLR,
 			LTDC_LXCFBLR_CFBLL | LTDC_LXCFBLR_CFBP, value);
 
 	/* Configure the frame buffer line number. */
-	io_clrsetbits32(ldev->regs + LTDC_L2CFBLNR,
+	io_clrsetbits32(ldev->regs + LTDC_LXCFBLNR,
 			LTDC_LXCFBLNR_CFBLNBR, fb->height);
 
 	/* Enable LTDC_Layer by setting LEN bit. */
-	io_setbits32(ldev->regs + LTDC_L2CR, LXCR_LEN);
+	io_setbits32(ldev->regs + LTDC_LXCR, LXCR_LEN);
 
 	/* Reload configuration at next vertical blanking. */
-	io_write32(ldev->regs + LTDC_L2RCR, LXCR_RCR_VBR);
+	io_write32(ldev->regs + LTDC_LXRCR, LXCR_RCR_VBR);
 
 	/* Enable IRQs */
 	io_setbits32(ldev->regs + LTDC_IER2, IER_FUKIE | IER_TERRIE);
+
+	clk_disable(ldev->clock);
 
 	ldev->activate = true;
 
 	return ret;
 err:
 	dump_reg_ltdc(ldev->regs);
+
+	clk_disable(ldev->clock);
 
 	return ret;
 }
@@ -353,7 +368,7 @@ static TEE_Result stm32_ltdc_get_display_size(void *device,
 					      uint32_t *height)
 {
 	struct ltdc_device *ldev = device;
-	TEE_Result ret = TEE_SUCCESS;
+	TEE_Result ret = TEE_ERROR_GENERIC;
 	uint32_t bpcr = 0;
 	uint32_t awcr = 0;
 	uint32_t gcr = 0;
@@ -363,7 +378,9 @@ static TEE_Result stm32_ltdc_get_display_size(void *device,
 	if (!width || !height)
 		return TEE_ERROR_BAD_PARAMETERS;
 
-	clk_enable(ldev->clock);
+	ret = clk_enable(ldev->clock);
+	if (ret)
+		panic("Cannot access LTDC clock");
 
 	gcr = io_read32(ldev->regs + LTDC_GCR);
 	if (!(gcr & GCR_LTDCEN)) {
@@ -445,7 +462,9 @@ static TEE_Result stm32_ltdc_probe(const void *fdt, int node,
 	if (res)
 		goto err1;
 
-	clk_enable(ldev->clock);
+	res = clk_enable(ldev->clock);
+	if (res)
+		panic("Cannot access LTDC clock");
 
 	hwid = io_read32(ldev->regs + LTDC_IDR);
 
