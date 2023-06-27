@@ -288,8 +288,6 @@ static TEE_Result stm32_ltdc_activate(void *device,
 	width_crtc = (awcr >> 16) - (bpcr >> 16);
 
 	if (fb->height > height_crtc || fb->width > width_crtc) {
-		EMSG("framebuffer size %dx%d exceed size of panel %dx%d",
-		     fb->width, fb->height, width_crtc, height_crtc);
 		ret = TEE_ERROR_GENERIC;
 		goto err;
 	}
