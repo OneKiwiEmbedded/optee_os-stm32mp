@@ -18,8 +18,8 @@ static void _ltc_ecc_free_public_key(struct ecc_public_key *s)
 	if (!s)
 		return;
 
-	crypto_bignum_free(s->x);
-	crypto_bignum_free(s->y);
+	crypto_bignum_free(&s->x);
+	crypto_bignum_free(&s->y);
 }
 
 /*
@@ -441,8 +441,8 @@ TEE_Result crypto_asym_alloc_ecc_keypair(struct ecc_keypair *s,
 err:
 	s->ops = NULL;
 
-	crypto_bignum_free(s->d);
-	crypto_bignum_free(s->x);
+	crypto_bignum_free(&s->d);
+	crypto_bignum_free(&s->x);
 
 	return TEE_ERROR_OUT_OF_MEMORY;
 }
@@ -493,7 +493,7 @@ TEE_Result crypto_asym_alloc_ecc_public_key(struct ecc_public_key *s,
 err:
 	s->ops = NULL;
 
-	crypto_bignum_free(s->x);
+	crypto_bignum_free(&s->x);
 
 	return TEE_ERROR_OUT_OF_MEMORY;
 }

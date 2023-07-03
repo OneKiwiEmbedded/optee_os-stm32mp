@@ -303,14 +303,14 @@ static TEE_Result stm32_alloc_keypair(struct ecc_keypair *s,
 
 	s->x = crypto_bignum_allocate(PKA_MAX_ECC_LEN);
 	if (!s->x) {
-		crypto_bignum_free(s->d);
+		crypto_bignum_free(&s->d);
 		return TEE_ERROR_OUT_OF_MEMORY;
 	}
 
 	s->y = crypto_bignum_allocate(PKA_MAX_ECC_LEN);
 	if (!s->y) {
-		crypto_bignum_free(s->d);
-		crypto_bignum_free(s->x);
+		crypto_bignum_free(&s->d);
+		crypto_bignum_free(&s->x);
 		return TEE_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -332,7 +332,7 @@ static TEE_Result stm32_alloc_publickey(struct ecc_public_key *s,
 
 	s->y = crypto_bignum_allocate(PKA_MAX_ECC_LEN);
 	if (!s->y) {
-		crypto_bignum_free(s->x);
+		crypto_bignum_free(&s->x);
 		return TEE_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -345,8 +345,8 @@ static void stm32_free_publickey(struct ecc_public_key *s)
 		return;
 
 	DMSG("Using PKA");
-	crypto_bignum_free(s->x);
-	crypto_bignum_free(s->y);
+	crypto_bignum_free(&s->x);
+	crypto_bignum_free(&s->y);
 }
 
 static TEE_Result is_point_on_curve(struct stm32_pka_point *point,
