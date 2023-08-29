@@ -3,6 +3,7 @@
  * Copyright (c) 2022, STMicroelectronics
  */
 #include <drivers/stm32_iac.h>
+#include <dt-bindings/soc/stm32mp25-rifsc.h>
 #include <io.h>
 #include <kernel/boot.h>
 #include <kernel/dt.h>
@@ -115,8 +116,12 @@ static TEE_Result stm32_iac_parse_fdt(void)
 	return TEE_SUCCESS;
 }
 
-#define IAC_EXCEPT_MSB_BIT(x) (x * _PERIPH_IDS_PER_REG + _PERIPH_IDS_PER_REG - 1)
-#define IAC_EXCEPT_LSB_BIT(x) (x * _PERIPH_IDS_PER_REG)
+#define IAC_EXCEPT_MSB_BIT(x)		((x) * _PERIPH_IDS_PER_REG + \
+					 _PERIPH_IDS_PER_REG - 1)
+#define IAC_EXCEPT_LSB_BIT(x)		((x) * _PERIPH_IDS_PER_REG)
+#define IAC_FIRST_ILAC_IN_REG(x)	(__builtin_ffs((x)) - 1)
+#define IAC_ILAC_ID(reg_val, offset)	(IAC_FIRST_ILAC_IN_REG(reg_val) + \
+					 IAC_EXCEPT_LSB_BIT(offset))
 
 __weak __noreturn void access_violation_action(void)
 {
@@ -124,13 +129,25 @@ __weak __noreturn void access_violation_action(void)
 	panic();
 }
 
+static const uint32_t iac_fbd_periph[] = {
+	STM32MP25_RIFSC_PWR_ID, STM32MP25_RIFSC_GPIOA_ID,
+	STM32MP25_RIFSC_GPIOB_ID, STM32MP25_RIFSC_GPIOC_ID,
+	STM32MP25_RIFSC_GPIOD_ID, STM32MP25_RIFSC_GPIOE_ID,
+	STM32MP25_RIFSC_GPIOF_ID, STM32MP25_RIFSC_GPIOG_ID,
+	STM32MP25_RIFSC_GPIOH_ID, STM32MP25_RIFSC_GPIOI_ID,
+	STM32MP25_RIFSC_GPIOJ_ID, STM32MP25_RIFSC_GPIOK_ID,
+	STM32MP25_RIFSC_GPIOZ_ID
+};
+
 static enum itr_return stm32_iac_itr(struct itr_handler *h __unused)
 {
 	struct iac_driver_data *ddata = iac_dev.ddata;
 	uintptr_t base = iac_dev.pdata.base;
 	unsigned int nreg = DIV_ROUND_UP(ddata->num_ilac, _PERIPH_IDS_PER_REG);
-	uint32_t isr = 0;
+	bool do_panic = false;
 	unsigned int i = 0;
+	unsigned int j = 0;
+	uint32_t isr = 0;
 
 	for (i = 0; i < nreg; i++) {
 		uint32_t offset = sizeof(uint32_t) * i;
@@ -139,16 +156,41 @@ static enum itr_return stm32_iac_itr(struct itr_handler *h __unused)
 		isr = io_read32(base + _IAC_ISR0 + offset);
 		isr &= io_read32(base + _IAC_IER0 + offset);
 
-		if (isr)
-			EMSG("IAC exceptions [%d:%d]: %#x",
-			     IAC_EXCEPT_MSB_BIT(i), IAC_EXCEPT_LSB_BIT(i), isr);
+		if (!isr)
+			continue;
 
-		while (isr && tries < _PERIPH_IDS_PER_REG) {
-			EMSG("IAC exception ID: %d",
-			     IAC_EXCEPT_LSB_BIT(i) + __builtin_ffs(isr) - 1);
+		for (j = 0; j < ARRAY_SIZE(iac_fbd_periph); j++) {
+			uint32_t fbd_bit = BIT(iac_fbd_periph[j] %
+					       _PERIPH_IDS_PER_REG);
+
+			if (!(isr & fbd_bit) ||
+			    IAC_ILAC_ID(isr, i) != iac_fbd_periph[j])
+				continue;
+
+			/* This IAC shouldn't lead to a panic */
+			IMSG("-------------------------");
+			IMSG("| Discarded IAC ID: %3u |", iac_fbd_periph[j]);
+			IMSG("-------------------------");
 
 			io_write32(base + _IAC_ICR0 + offset,
-				   1 << (__builtin_ffs(isr) - 1));
+				   BIT(IAC_FIRST_ILAC_IN_REG(isr)));
+
+			isr = io_read32(base + _IAC_ISR0 + offset);
+			isr &= io_read32(base + _IAC_IER0 + offset);
+		}
+
+		/* A legit IAC occurred, platform will panic */
+		if (isr) {
+			do_panic = true;
+			EMSG("IAC exceptions [%d:%d]: %#x",
+			     IAC_EXCEPT_MSB_BIT(i), IAC_EXCEPT_LSB_BIT(i), isr);
+		}
+
+		while (isr && tries < _PERIPH_IDS_PER_REG) {
+			EMSG("IAC exception ID: %d", IAC_ILAC_ID(isr, i));
+
+			io_write32(base + _IAC_ICR0 + offset,
+				   BIT(IAC_FIRST_ILAC_IN_REG(isr)));
 
 			isr = io_read32(base + _IAC_ISR0 + offset);
 			isr &= io_read32(base + _IAC_IER0 + offset);
@@ -157,7 +199,8 @@ static enum itr_return stm32_iac_itr(struct itr_handler *h __unused)
 		}
 	}
 
-	access_violation_action();
+	if (do_panic)
+		access_violation_action();
 
 	return ITRR_HANDLED;
 }
