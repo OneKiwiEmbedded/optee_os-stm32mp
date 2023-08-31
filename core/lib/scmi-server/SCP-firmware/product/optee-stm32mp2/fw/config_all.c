@@ -614,6 +614,9 @@ static void set_resources(struct scpfw_config *cfg)
                                                           reset_index),
                         .driver_api_id =
                             (fwk_id_t)FWK_ID_API_INIT(FWK_MODULE_IDX_OPTEE_RESET, 0),
+                        .modes = MOD_RESET_DOMAIN_AUTO_RESET |
+                                 MOD_RESET_DOMAIN_MODE_EXPLICIT_ASSERT |
+                                 MOD_RESET_DOMAIN_MODE_EXPLICIT_DEASSERT,
                     };
 
                     reset_elt[reset_index].name = reset_cfg->name;
