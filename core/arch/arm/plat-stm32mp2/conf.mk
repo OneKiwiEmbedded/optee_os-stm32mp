@@ -89,6 +89,7 @@ CFG_STM32_I2C ?= y
 CFG_STM32_IAC ?= y
 CFG_STM32_IPCC ?= y
 CFG_STM32_IWDG ?= y
+CFG_STM32_LPTIMER ?= y
 CFG_STM32_OMM ?= y
 CFG_STM32_PKA ?= y
 CFG_STM32_PWR ?= y
@@ -193,4 +194,9 @@ CFG_STPMIC2 ?= y
 CFG_WDT ?= $(CFG_STM32_IWDG)
 ifeq ($(CFG_WDT),y)
 $(call force,CFG_WDT_SM_HANDLER,y,Mandated by CFG_WDT)
+endif
+
+# Enable associated counter driver
+ifeq ($(CFG_STM32_LPTIMER),y)
+$(call force,CFG_COUNTER_DRIVER,y)
 endif
