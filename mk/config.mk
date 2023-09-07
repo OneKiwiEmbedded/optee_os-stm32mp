@@ -976,3 +976,8 @@ CFG_CORE_PREALLOC_EL0_TBLS ?= n
 ifeq (y-y,$(CFG_CORE_PREALLOC_EL0_TBLS)-$(CFG_WITH_PAGER))
 $(error "CFG_WITH_PAGER can't support CFG_CORE_PREALLOC_EL0_TBLS")
 endif
+
+
+# CFG_DRIVERS_REMOTEPROC, when enabled, embeds support for remote processor
+# management including generic DT bindings for the configuration.
+CFG_DRIVERS_REMOTEPROC ?= n
