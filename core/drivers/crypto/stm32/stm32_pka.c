@@ -1598,7 +1598,7 @@ static TEE_Result stm32_pka_pm(enum pm_op op, uint32_t pm_hint,
 		    clk_enable(pka_pdata.clk_rng))
 			panic();
 
-		if (pm_hint == PM_HINT_CONTEXT_STATE) {
+		if (PM_HINT_IS_STATE(pm_hint, CONTEXT)) {
 			ret = stm32_pka_reset();
 			if (ret)
 				panic();

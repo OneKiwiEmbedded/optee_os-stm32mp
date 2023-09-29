@@ -1483,7 +1483,7 @@ static TEE_Result stm32_saes_pm(enum pm_op op, uint32_t pm_hint,
 		if (clk_enable(saes_pdata.clk) ||  clk_enable(saes_pdata.clk_rng))
 			panic();
 
-		if (pm_hint == PM_HINT_CONTEXT_STATE) {
+		if (PM_HINT_IS_STATE(pm_hint, CONTEXT)) {
 			ret = stm32_saes_reset();
 			if (ret)
 				panic();
