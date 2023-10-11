@@ -2,6 +2,7 @@
 /*
  * Copyright (c) 2022, STMicroelectronics
  */
+#include <drivers/stm32_rif.h>
 #include <io.h>
 #include <kernel/boot.h>
 #include <kernel/dt.h>
@@ -110,12 +111,6 @@ static TEE_Result stm32_serc_parse_fdt(void)
 #define SERC_EXCEPT_MSB_BIT(x) (x * _PERIPH_IDS_PER_REG + _PERIPH_IDS_PER_REG - 1)
 #define SERC_EXCEPT_LSB_BIT(x) (x * _PERIPH_IDS_PER_REG)
 
-__weak __noreturn void access_violation_action(void)
-{
-	DMSG("Ooops...");
-	panic();
-}
-
 static enum itr_return stm32_serc_itr(struct itr_handler *h __unused)
 {
 	struct serc_driver_data *ddata = serc_dev.ddata;
@@ -152,7 +147,7 @@ static enum itr_return stm32_serc_itr(struct itr_handler *h __unused)
 	}
 
 	if (IS_ENABLED(CFG_STM32_PANIC_ON_SERC_EVENT))
-		access_violation_action();
+		stm32_rif_access_violation_action();
 
 	return ITRR_HANDLED;
 }

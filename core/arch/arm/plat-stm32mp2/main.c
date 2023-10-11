@@ -8,7 +8,7 @@
 #include <console.h>
 #include <drivers/gic.h>
 #include <drivers/stm32_bsec.h>
-#include <drivers/stm32_iac.h>
+#include <drivers/stm32_rif.h>
 #include <drivers/stm32_risab.h>
 #include <drivers/stm32_risaf.h>
 #include <drivers/stm32_uart.h>
@@ -192,15 +192,13 @@ void may_spin_unlock(unsigned int *lock, uint32_t exceptions)
 	cpu_spin_unlock_xrestore(lock, exceptions);
 }
 
-#if TRACE_LEVEL >= TRACE_INFO
-__noreturn void access_violation_action(void)
+#ifdef CFG_STM32_RIF
+void stm32_rif_access_violation_action(void)
 {
 	stm32_risaf_dump_erroneous_data();
 	stm32_risab_dump_erroneous_data();
-
-	panic();
 }
-#endif
+#endif /* CFG_STM32_RIF */
 
 #ifdef CFG_STM32_BSEC3
 void plat_bsec_get_static_cfg(struct stm32_bsec_static_cfg *cfg)

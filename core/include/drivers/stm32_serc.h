@@ -18,10 +18,4 @@ struct stm32_serc_platdata {
 	int irq;
 };
 
-/*
- * Platform can define an access violation action to trap cpu/reset core or system
- * after an eventual debug trace.
- */
-void access_violation_action(void);
-
 #endif /* __DRIVERS_STM32_SERC_H__ */
