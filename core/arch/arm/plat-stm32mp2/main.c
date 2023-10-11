@@ -11,9 +11,11 @@
 #include <drivers/stm32_rif.h>
 #include <drivers/stm32_risab.h>
 #include <drivers/stm32_risaf.h>
+#include <drivers/stm32_serc.h>
 #include <drivers/stm32_uart.h>
 #include <drivers/stm32mp_dt_bindings.h>
 #include <initcall.h>
+#include <kernel/abort.h>
 #include <kernel/dt.h>
 #include <kernel/boot.h>
 #include <kernel/interrupt.h>
@@ -296,3 +298,9 @@ static TEE_Result setup_multi_core_panic(void)
 	return TEE_SUCCESS;
 }
 service_init(setup_multi_core_panic);
+
+void plat_abort_handler(struct thread_abort_regs *regs __unused)
+{
+	/* If fault is ignored, it could be due to a SERC event */
+	stm32_serc_handle_ilac();
+}
