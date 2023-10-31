@@ -534,16 +534,19 @@ void stpmic2_dump_regulators(struct pmic_handle_s *pmic)
 	for (i = U(0); i < ARRAY_SIZE(regul_table); i++) {
 		uint16_t val = U(0);
 		bool state = false;
+		uint8_t arg = U(0);
 
 		if (!regul_table[i].volt_cr)
 			continue;
 
 		stpmic2_regulator_get_voltage(pmic, i, &val);
 		stpmic2_regulator_get_state(pmic, i, &state);
+		stpmic2_regulator_get_prop(pmic, i, STPMIC2_BYPASS, &arg);
 
 		name = regul_table[i].name;
-		DMSG("PMIC regul %s: %s, %dmV", name,
-		     state ? "EN" : "DIS", val);
+		DMSG("PMIC regul %s: %s%s, %dmV", name,
+		     state ? "EN" : "DIS",
+		     arg == PROP_BYPASS_SET ? " BYPASS" : "",  val);
 	}
 }
 
