@@ -317,7 +317,10 @@ static int get_duty_cycle(fwk_id_t dev_id, uint32_t *num, uint32_t *den)
     }
 
     if (!is_exposed(ctx)) {
-        return FWK_E_ACCESS;
+        /* Return a dummy value to prevent an error trace */
+	*num = 1;
+	*den = 2;
+        return FWK_SUCCESS;
     }
 
     res = clk_get_duty_cycle(ctx->clk, &duty);
