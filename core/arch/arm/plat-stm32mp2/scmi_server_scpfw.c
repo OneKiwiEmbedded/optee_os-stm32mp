@@ -325,8 +325,8 @@ static void get_scmi_clocks(void)
 		struct clk *clk = plat_clocks + i;
 
 		if (!scmi_clk->is_exposed) {
-			/* SCP-firmware needs a name */
-			scmi_clk->name = "<reserved>";
+			/* Empty name clocks discarded by Linux kernel */
+			scmi_clk->name = "";
 			continue;
 		}
 
