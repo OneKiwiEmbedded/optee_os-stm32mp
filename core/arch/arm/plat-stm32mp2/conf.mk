@@ -49,6 +49,8 @@ $(call force,CFG_WITH_ARM_TRUSTED_FW,y)
 supported-ta-targets ?= ta_arm64
 
 $(call force,CFG_ARM_GIC_PM,y)
+$(call force,CFG_CORE_ASYNC_NOTIF,y)
+$(call force,CFG_CORE_ASYNC_NOTIF_GIC_INTID,31)
 $(call force,CFG_GIC,y)
 $(call force,CFG_INIT_CNTVOFF,y)
 $(call force,CFG_PM,y)
