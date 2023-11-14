@@ -197,8 +197,12 @@ void may_spin_unlock(unsigned int *lock, uint32_t exceptions)
 #ifdef CFG_STM32_RIF
 void stm32_rif_access_violation_action(void)
 {
+#ifdef CFG_STM32_RISAF
 	stm32_risaf_dump_erroneous_data();
+#endif
+#ifdef CFG_STM32_RISAB
 	stm32_risab_dump_erroneous_data();
+#endif
 }
 #endif /* CFG_STM32_RIF */
 
