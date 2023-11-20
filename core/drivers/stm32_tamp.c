@@ -25,45 +25,45 @@
 
 
 /* STM32 Registers */
-#define _TAMP_CR1			0x00U
-#define _TAMP_CR2			0x04U
-#define _TAMP_CR3			0x08U
-#define _TAMP_FLTCR			0x0CU
-#define _TAMP_ATCR1			0x10U
-#define _TAMP_ATSEEDR			0x14U
-#define _TAMP_ATOR			0x18U
-#define _TAMP_ATCR2			0x1CU
-#define _TAMP_SECCFGR			0x20U
-#define _TAMP_SMCR			0x20U
-#define _TAMP_PRIVCFGR			0x24U
-#define _TAMP_IER			0x2CU
-#define _TAMP_SR			0x30U
-#define _TAMP_MISR			0x34U
-#define _TAMP_SMISR			0x38U
-#define _TAMP_SCR			0x3CU
-#define _TAMP_COUNTR			0x40U
-#define _TAMP_COUNT2R			0x44U
-#define _TAMP_OR			0x50U
-#define _TAMP_ERCFGR			0X54U
-#define _TAMP_BKPRIFR(x)		(0x70U + 0x4U * ((x) - 1))
-#define _TAMP_CIDCFGR(x)		(0x80U + 0x4U * (x))
-#define _TAMP_BKPxR(x)			(0x100U + 0x4U * ((x) - 1))
-#define _TAMP_HWCFGR2			0x3ECU
-#define _TAMP_HWCFGR1			0x3F0U
-#define _TAMP_VERR			0x3F4U
-#define _TAMP_IPIDR			0x3F8U
-#define _TAMP_SIDR			0x3FCU
+#define _TAMP_CR1			U(0x00)
+#define _TAMP_CR2			U(0x04)
+#define _TAMP_CR3			U(0x08)
+#define _TAMP_FLTCR			U(0x0C)
+#define _TAMP_ATCR1			U(0x10)
+#define _TAMP_ATSEEDR			U(0x14)
+#define _TAMP_ATOR			U(0x18)
+#define _TAMP_ATCR2			U(0x1C)
+#define _TAMP_SECCFGR			U(0x20)
+#define _TAMP_SMCR			U(0x20)
+#define _TAMP_PRIVCFGR			U(0x24)
+#define _TAMP_IER			U(0x2C)
+#define _TAMP_SR			U(0x30)
+#define _TAMP_MISR			U(0x34)
+#define _TAMP_SMISR			U(0x38)
+#define _TAMP_SCR			U(0x3C)
+#define _TAMP_COUNTR			U(0x40)
+#define _TAMP_COUNT2R			U(0x44)
+#define _TAMP_OR			U(0x50)
+#define _TAMP_ERCFGR			U(0X54)
+#define _TAMP_BKPRIFR(x)		(U(0x70) + U(0x4) * ((x) - 1))
+#define _TAMP_CIDCFGR(x)		(U(0x80) + U(0x4) * (x))
+#define _TAMP_BKPxR(x)			(U(0x100) + U(0x4) * ((x) - 1))
+#define _TAMP_HWCFGR2			U(0x3EC)
+#define _TAMP_HWCFGR1			U(0x3F0)
+#define _TAMP_VERR			U(0x3F4)
+#define _TAMP_IPIDR			U(0x3F8)
+#define _TAMP_SIDR			U(0x3FC)
 
 /* _TAMP_CR1 bit fields */
-#define _TAMP_CR1_ITAMP(id)		BIT((id) - INT_TAMP1 + 16U)
+#define _TAMP_CR1_ITAMP(id)		BIT((id) - INT_TAMP1 + U(16))
 #define _TAMP_CR1_ETAMP(id)		BIT((id) - EXT_TAMP1)
 
 /* _TAMP_CR2 bit fields */
-#define _TAMP_CR2_ETAMPTRG(id)		BIT((id) - EXT_TAMP1 + 24U)
+#define _TAMP_CR2_ETAMPTRG(id)		BIT((id) - EXT_TAMP1 + U(24))
 #define _TAMP_CR2_BKERASE		BIT(23)
 #define _TAMP_CR2_BKBLOCK		BIT(22)
-#define _TAMP_CR2_ETAMPMSK_MAX_ID	3U
-#define _TAMP_CR2_ETAMPMSK(id)		BIT((id) - EXT_TAMP1 + 16U)
+#define _TAMP_CR2_ETAMPMSK_MAX_ID	U(3)
+#define _TAMP_CR2_ETAMPMSK(id)		BIT((id) - EXT_TAMP1 + U(16))
 #define _TAMP_CR2_ETAMPNOER(id)		BIT((id) - EXT_TAMP1)
 
 /* _TAMP_CR3 bit fields */
@@ -72,27 +72,28 @@
 
 /* _TAMP_FLTCR bit fields */
 #define _TAMP_FLTCR_TAMPFREQ_MASK	GENMASK_32(2, 0)
-#define _TAMP_FLTCR_TAMPFREQ_SHIFT	0U
+#define _TAMP_FLTCR_TAMPFREQ_SHIFT	U(0)
 #define _TAMP_FLTCR_TAMPFLT_MASK	GENMASK_32(4, 3)
-#define _TAMP_FLTCR_TAMPFLT_SHIFT	3U
+#define _TAMP_FLTCR_TAMPFLT_SHIFT	U(3)
 #define _TAMP_FLTCR_TAMPPRCH_MASK	GENMASK_32(6, 5)
-#define _TAMP_FLTCR_TAMPPRCH_SHIFT	5U
+#define _TAMP_FLTCR_TAMPPRCH_SHIFT	U(5)
 #define _TAMP_FLTCR_TAMPPUDIS		BIT(7)
 
 /* _TAMP_ATCR bit fields */
 #define _TAMP_ATCR1_ATCKSEL_MASK	GENMASK_32(19, 16)
-#define _TAMP_ATCR1_ATCKSEL_SHIFT	16U
+#define _TAMP_ATCR1_ATCKSEL_SHIFT	U(16)
 #define _TAMP_ATCR1_ATPER_MASK		GENMASK_32(26, 24)
-#define _TAMP_ATCR1_ATPER_SHIFT		24U
+#define _TAMP_ATCR1_ATPER_SHIFT		U(24)
 #define _TAMP_ATCR1_ATOSHARE		BIT(30)
 #define _TAMP_ATCR1_FLTEN		BIT(31)
 #define _TAMP_ATCR1_COMMON_MASK		GENMASK_32(31, 16)
 #define _TAMP_ATCR1_ETAMPAM(id)		BIT((id) - EXT_TAMP1)
 #define _TAMP_ATCR1_ATOSEL_MASK(id)	GENMASK_32(((id) - EXT_TAMP1 + 1) *    \
-						   2U + 7U,                    \
-						   ((id) - EXT_TAMP1) * 2U + 8U)
+						   U(2) + U(7),                \
+						   ((id) - EXT_TAMP1) *        \
+						   U(2) + U(8))
 #define _TAMP_ATCR1_ATOSEL(id, od)	SHIFT_U32(((od) - OUT_TAMP1),          \
-					 (((id) - EXT_TAMP1) * 2U + 8U))
+					 (((id) - EXT_TAMP1) * U(2) + U(8)))
 
 /* _TAMP_ATOR bit fields */
 #define _TAMP_PRNG			GENMASK_32(7, 0)
@@ -100,31 +101,31 @@
 #define _TAMP_INITS			BIT(15)
 
 /* _TAMP_IER bit fields */
-#define _TAMP_IER_ITAMP(id)		BIT((id) - INT_TAMP1 + 16U)
+#define _TAMP_IER_ITAMP(id)		BIT((id) - INT_TAMP1 + U(16))
 #define _TAMP_IER_ETAMP(id)		BIT((id) - EXT_TAMP1)
 
 /* _TAMP_SR bit fields */
 #define _TAMP_SR_ETAMPXF_MASK		GENMASK_32(7, 0)
 #define _TAMP_SR_ITAMPXF_MASK		GENMASK_32(31, 16)
-#define _TAMP_SR_ITAMP(id)		BIT((id) - INT_TAMP1 + 16U)
+#define _TAMP_SR_ITAMP(id)		BIT((id) - INT_TAMP1 + U(16))
 #define _TAMP_SR_ETAMP(id)		BIT((id) - EXT_TAMP1)
 
 /* _TAMP_SCR bit fields */
-#define _TAMP_SCR_ITAMP(id)		BIT((id) - INT_TAMP1 + 16U)
+#define _TAMP_SCR_ITAMP(id)		BIT((id) - INT_TAMP1 + U(16))
 #define _TAMP_SCR_ETAMP(id)		BIT((id) - EXT_TAMP1)
 
 /* _TAMP_SECCFGR bit fields */
 #define _TAMP_SECCFGR_BKPRWSEC_MASK	GENMASK_32(7, 0)
-#define _TAMP_SECCFGR_BKPRWSEC_SHIFT	0U
+#define _TAMP_SECCFGR_BKPRWSEC_SHIFT	U(0)
 #define _TAMP_SECCFGR_CNT2SEC		BIT(14)
-#define _TAMP_SECCFGR_CNT2SEC_SHIFT	14U
+#define _TAMP_SECCFGR_CNT2SEC_SHIFT	U(14)
 #define _TAMP_SECCFGR_CNT1SEC		BIT(15)
-#define _TAMP_SECCFGR_CNT1SEC_SHIFT	15U
+#define _TAMP_SECCFGR_CNT1SEC_SHIFT	U(15)
 #define _TAMP_SECCFGR_BKPWSEC_MASK	GENMASK_32(23, 16)
-#define _TAMP_SECCFGR_BKPWSEC_SHIFT	16U
+#define _TAMP_SECCFGR_BKPWSEC_SHIFT	U(16)
 #define _TAMP_SECCFGR_BHKLOCK		BIT(30)
 #define _TAMP_SECCFGR_TAMPSEC		BIT(31)
-#define _TAMP_SECCFGR_TAMPSEC_SHIFT	31U
+#define _TAMP_SECCFGR_TAMPSEC_SHIFT	U(31)
 #define _TAMP_SECCFGR_BUT_BKP_MASK	(GENMASK_32(31, 30) | \
 					 GENMASK_32(15, 14))
 #define _TAMP_SECCFGR_RIF_TAMP_SEC	BIT(0)
@@ -133,9 +134,9 @@
 
 /* _TAMP_SMCR bit fields */
 #define _TAMP_SMCR_BKPRWDPROT_MASK	GENMASK_32(7, 0)
-#define _TAMP_SMCR_BKPRWDPROT_SHIFT	0U
+#define _TAMP_SMCR_BKPRWDPROT_SHIFT	U(0)
 #define _TAMP_SMCR_BKPWDPROT_MASK	GENMASK_32(23, 16)
-#define _TAMP_SMCR_BKPWDPROT_SHIFT	16U
+#define _TAMP_SMCR_BKPWDPROT_SHIFT	U(16)
 #define _TAMP_SMCR_DPROT		BIT(31)
 
 /*
@@ -154,10 +155,12 @@
 
 /* _TAMP_ATCR2 bit fields */
 #define _TAMP_ATCR2_ATOSEL_MASK(id)	GENMASK_32(((id) - EXT_TAMP1 + 1) *    \
-						   3U + 7U,                    \
-						   ((id) - EXT_TAMP1) * 3U + 8U)
+						   U(3) + U(7),                \
+						   ((id) - EXT_TAMP1) *        \
+						   U(3) + U(8))
 #define _TAMP_ATCR2_ATOSEL(id, od)	SHIFT_U32(((od) - OUT_TAMP1),          \
-						 (((id) - EXT_TAMP1) * 3U + 8U))
+						 (((id) - EXT_TAMP1) *         \
+						  U(3) + U(8)))
 
 /* _TAMP_OR bit fields */
 #define _TAMP_OR_IN1RMP_PF10		0U
@@ -188,8 +191,8 @@
 #define _TAMP_HWCFGR1_TAMPER		GENMASK_32(11, 8)
 #define _TAMP_HWCFGR1_ACTIVE		GENMASK_32(15, 12)
 #define _TAMP_HWCFGR1_INTERN		GENMASK_32(31, 16)
-#define _TAMP_HWCFGR1_ITAMP_MAX_ID	16U
-#define _TAMP_HWCFGR1_ITAMP(id)		BIT((id) - INT_TAMP1 + 16U)
+#define _TAMP_HWCFGR1_ITAMP_MAX_ID	U(16)
+#define _TAMP_HWCFGR1_ITAMP(id)		BIT((id) - INT_TAMP1 + U(16))
 
 /* _TAMP_VERR bit fields */
 #define _TAMP_VERR_MINREV		GENMASK_32(3, 0)
@@ -207,22 +210,22 @@
 #define _TAMP_BKPRIFR_1_MASK		GENMASK_32(7, 0)
 #define _TAMP_BKPRIFR_2_MASK		GENMASK_32(7, 0)
 #define _TAMP_BKPRIFR_3_MASK		(GENMASK_32(23, 16) | GENMASK_32(7, 0))
-#define _TAMP_BKPRIFR_ZONE3_RIF2_SHIFT	16U
+#define _TAMP_BKPRIFR_ZONE3_RIF2_SHIFT	U(16)
 
-#define SEED_TIMEOUT_US			1000U
+#define SEED_TIMEOUT_US			U(1000)
 
 /* Define TAMPER modes from DT */
 #define TAMP_TRIG_ON			BIT(16)
 #define TAMP_ACTIVE			BIT(17)
 #define TAMP_IN_DT			BIT(18)
 
-#define TAMP_EXTI_WKUP			18U
+#define TAMP_EXTI_WKUP			U(18)
 
 /*
  * RIF miscellaneous
  */
-#define TAMP_RIF_RESOURCES		3U
-#define TAMP_NB_MAX_CID_SUPPORTED	7U
+#define TAMP_RIF_RESOURCES		U(3)
+#define TAMP_NB_MAX_CID_SUPPORTED	U(7)
 
 enum stm32_tamp_out_id {
 	OUT_TAMP1 = LAST_TAMP,
@@ -590,10 +593,9 @@ static TEE_Result stm32_tamp_set_int_config(struct stm32_tamp_compat *tcompat,
 }
 
 static TEE_Result stm32_tamp_set_ext_config(struct stm32_tamp_compat *tcompat,
-					    uint32_t etamp_index,
-					    uint32_t *cr1, uint32_t *cr2,
-					    uint32_t *atcr1, uint32_t *atcr2,
-					    uint32_t *ier)
+					    uint32_t etamp_index, uint32_t *cr1,
+					    uint32_t *cr2, uint32_t *atcr1,
+					    uint32_t *atcr2, uint32_t *ier)
 {
 	enum stm32_tamp_id id = INVALID_TAMP;
 	struct stm32_tamp_conf *tamp_ext = NULL;
@@ -638,13 +640,13 @@ static TEE_Result stm32_tamp_set_ext_config(struct stm32_tamp_compat *tcompat,
 			if (tcompat->tags & TAMP_HAS_REGISTER_ATCR2)
 				*atcr2 = (*atcr2 &
 					  ~_TAMP_ATCR2_ATOSEL_MASK(id)) |
-					_TAMP_ATCR2_ATOSEL(id,
-							   tamp_ext->out_id);
+					 _TAMP_ATCR2_ATOSEL(id,
+							    tamp_ext->out_id);
 			else
 				*atcr1 = (*atcr1 &
 					  ~_TAMP_ATCR1_ATOSEL_MASK(id)) |
-					_TAMP_ATCR1_ATOSEL(id,
-							   tamp_ext->out_id);
+					 _TAMP_ATCR1_ATOSEL(id,
+							    tamp_ext->out_id);
 		}
 	} else {
 		*atcr1 &= ~_TAMP_ATCR1_ETAMPAM(id);
@@ -922,14 +924,14 @@ TEE_Result stm32_tamp_set_config(void)
 	atcr1 = stm32_tamp.pdata.active_conf & _TAMP_ATCR1_COMMON_MASK;
 	stm32_tamp_set_atper(stm32_tamp.pdata.out_pins, &atcr1);
 
-	for (i = 0U; i < stm32_tamp.pdata.compat->int_tamp_size; i++) {
+	for (i = 0; i < stm32_tamp.pdata.compat->int_tamp_size; i++) {
 		ret = stm32_tamp_set_int_config(stm32_tamp.pdata.compat, i,
 						&cr1, &cr3, &ier);
 		if (ret)
 			return ret;
 	}
 
-	for (i = 0U; i < stm32_tamp.pdata.compat->ext_tamp_size; i++) {
+	for (i = 0; i < stm32_tamp.pdata.compat->ext_tamp_size; i++) {
 		ret = stm32_tamp_set_ext_config(stm32_tamp.pdata.compat, i,
 						&cr1, &cr2, &atcr1, &atcr2,
 						&ier);
@@ -1036,7 +1038,7 @@ TEE_Result stm32_tamp_write_mcounter(int cnt_idx)
 	    cnt_idx > stm32_tamp.pdata.compat->nb_monotonic_counter)
 		return TEE_ERROR_BAD_PARAMETERS;
 
-	io_write32(base + _TAMP_COUNTR + cnt_idx * sizeof(uint32_t), 1U);
+	io_write32(base + _TAMP_COUNTR + cnt_idx * sizeof(uint32_t), 1);
 
 	return TEE_SUCCESS;
 }
@@ -1047,7 +1049,7 @@ uint32_t stm32_tamp_read_mcounter(int cnt_idx)
 
 	if (cnt_idx < 0 || !stm32_tamp.pdata.compat ||
 	    cnt_idx > stm32_tamp.pdata.compat->nb_monotonic_counter)
-		return 0U;
+		return U(0);
 
 	return io_read32(base + _TAMP_COUNTR + cnt_idx * sizeof(uint32_t));
 }
@@ -1097,14 +1099,14 @@ TEE_Result stm32_tamp_activate_tamp(enum stm32_tamp_id id, uint32_t mode,
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	/* Find internal Tamp struct */
-	for (i = 0U; i < stm32_tamp.pdata.compat->int_tamp_size; i++)
+	for (i = 0; i < stm32_tamp.pdata.compat->int_tamp_size; i++)
 		if (stm32_tamp.pdata.compat->int_tamp[i].id == id) {
 			tamp_conf = &stm32_tamp.pdata.compat->int_tamp[i];
 			return stm32_tamp_configure_int(tamp_conf, mode, cb);
 		}
 
 	/* Find external Tamp struct */
-	for (i = 0U; i < stm32_tamp.pdata.compat->ext_tamp_size; i++)
+	for (i = 0; i < stm32_tamp.pdata.compat->ext_tamp_size; i++)
 		if (stm32_tamp.pdata.compat->ext_tamp[i].id == id) {
 			tamp_conf = &stm32_tamp.pdata.compat->ext_tamp[i];
 			return stm32_tamp_configure_ext(tamp_conf, mode, cb);
@@ -1247,7 +1249,7 @@ static void stm32_tamp_configure_pin(uint32_t id,
 		return;
 
 	/* Configure option registers */
-	for (i = 0U; i < compat->pin_map_size; i++)
+	for (i = 0; i < compat->pin_map_size; i++)
 		if (id == compat->pin_map[i].id &&
 		    pinctrl->bank == compat->pin_map[i].bank &&
 		    pinctrl->pin == compat->pin_map[i].pin &&
@@ -1261,14 +1263,14 @@ static void stm32_tamp_configure_pin(uint32_t id,
 		panic();
 }
 
-static
-TEE_Result stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
-					    struct stm32_tamp_platdata *pdata)
+static TEE_Result
+stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
+				 struct stm32_tamp_platdata *pdata)
 {
 	TEE_Result res = TEE_SUCCESS;
 	struct stm32_pinctrl *pinctrl[2] = { };
 	struct stm32_pinctrl_list *pinctrl_list = NULL;
-	size_t i = 0U;
+	size_t i = 0;
 	enum stm32_tamp_id id = INVALID_TAMP;
 	enum stm32_tamp_out_id out_id = INVALID_OUT_TAMP;
 	struct stm32_tamp_conf *tamp_ext = NULL;
@@ -1279,7 +1281,7 @@ TEE_Result stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
 	bool active = false;
 
 	if (_fdt_get_status(fdt, node) == DT_STATUS_DISABLED)
-		return 0;
+		return TEE_SUCCESS;
 
 	/*
 	 * First pin in the "pinctrl-0" node is the EXT_TAMP.
@@ -1325,7 +1327,7 @@ TEE_Result stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
 	id = fdt32_to_cpu(*tampid) + EXT_TAMP1 - 1;
 
 	/* Find external Tamp struct */
-	for (i = 0U; i < pdata->compat->ext_tamp_size; i++) {
+	for (i = 0; i < pdata->compat->ext_tamp_size; i++) {
 		if (pdata->compat->ext_tamp[i].id == id) {
 			tamp_ext = &pdata->compat->ext_tamp[i];
 			break;
@@ -1354,14 +1356,15 @@ TEE_Result stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
 	return TEE_SUCCESS;
 }
 
-static int stm32_tamp_parse_passive_conf(const void *fdt, int node,
-					 struct stm32_tamp_platdata *pdata)
+static TEE_Result
+stm32_tamp_parse_passive_conf(const void *fdt, int node,
+			      struct stm32_tamp_platdata *pdata)
 {
 	const fdt32_t *cuint = NULL;
-	uint32_t precharge = 0U;
-	uint32_t nb_sample = 0U;
-	uint32_t clk_div = 32768U;
-	uint32_t conf = 0U;
+	uint32_t precharge = 0;
+	uint32_t nb_sample = 0;
+	uint32_t clk_div = 32768;
+	uint32_t conf = 0;
 
 	cuint = fdt_getprop(fdt, node, "st,tamp_passive_precharge", NULL);
 	if (cuint)
@@ -1375,8 +1378,8 @@ static int stm32_tamp_parse_passive_conf(const void *fdt, int node,
 	if (cuint)
 		clk_div = fdt32_to_cpu(*cuint);
 
-	DMSG("Passive conf from dt: precharge=%"PRId32", nb_sample=%"PRId32
-	     ", clk_div=%"PRId32, precharge, nb_sample, clk_div);
+	DMSG("Passive conf from dt: precharge=%"PRIu32", nb_sample=%"PRIu32
+	     ", clk_div=%"PRIu32, precharge, nb_sample, clk_div);
 
 	switch (precharge) {
 	case 0:
@@ -1399,7 +1402,7 @@ static int stm32_tamp_parse_passive_conf(const void *fdt, int node,
 		conf |= 3 << _TAMP_FLTCR_TAMPPRCH_SHIFT;
 		break;
 	default:
-		return -1;
+		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
 	switch (nb_sample) {
@@ -1428,7 +1431,7 @@ static int stm32_tamp_parse_passive_conf(const void *fdt, int node,
 		conf |= 3 << _TAMP_FLTCR_TAMPFLT_SHIFT;
 		break;
 	default:
-		return -1;
+		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
 	switch (clk_div) {
@@ -1464,20 +1467,21 @@ static int stm32_tamp_parse_passive_conf(const void *fdt, int node,
 		conf |= 7 << _TAMP_FLTCR_TAMPFREQ_SHIFT;
 		break;
 	default:
-		return -1;
+		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
 	pdata->passive_conf = conf;
 
-	return 0;
+	return TEE_SUCCESS;
 }
 
-static int stm32_tamp_parse_active_conf(const void *fdt, int node,
-					struct stm32_tamp_platdata *pdata)
+static TEE_Result
+stm32_tamp_parse_active_conf(const void *fdt, int node,
+			     struct stm32_tamp_platdata *pdata)
 {
 	const fdt32_t *cuint = NULL;
-	uint32_t clk_div = 1U;
-	uint32_t conf = 0U;
+	uint32_t clk_div = 1;
+	uint32_t conf = 0;
 
 	cuint = fdt_getprop(fdt, node, "st,tamp_active_filter", NULL);
 	if (cuint)
@@ -1491,7 +1495,7 @@ static int stm32_tamp_parse_active_conf(const void *fdt, int node,
 	if (cuint)
 		clk_div = fdt32_to_cpu(*cuint);
 
-	DMSG("Active conf from dt: %s clk_div=%"PRId32,
+	DMSG("Active conf from dt: %s clk_div=%"PRIu32,
 	     (conf & _TAMP_ATCR1_FLTEN) ? "filter" : "no filter", clk_div);
 
 	switch (clk_div) {
@@ -1535,14 +1539,14 @@ static int stm32_tamp_parse_active_conf(const void *fdt, int node,
 			break;
 		}
 
-		return -1;
+		return TEE_ERROR_BAD_PARAMETERS;
 	default:
-		return -1;
+		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
 	pdata->active_conf = conf;
 
-	return 0;
+	return TEE_SUCCESS;
 }
 
 static TEE_Result stm32_tamp_parse_fdt(struct stm32_tamp_platdata *pdata,
@@ -1581,8 +1585,13 @@ static TEE_Result stm32_tamp_parse_fdt(struct stm32_tamp_platdata *pdata,
 
 	pdata->pins_conf = 0;
 
-	stm32_tamp_parse_passive_conf(fdt, node, pdata);
-	stm32_tamp_parse_active_conf(fdt, node, pdata);
+	res = stm32_tamp_parse_passive_conf(fdt, node, pdata);
+	if (res)
+		return res;
+
+	res = stm32_tamp_parse_active_conf(fdt, node, pdata);
+	if (res)
+		return res;
 
 	fdt_for_each_subnode(subnode, fdt, node) {
 		if (fdt_getprop(fdt, subnode, "pinctrl-0", NULL)) {
@@ -1590,6 +1599,7 @@ static TEE_Result stm32_tamp_parse_fdt(struct stm32_tamp_platdata *pdata,
 							       pdata);
 			if (res)
 				return res;
+
 			pinnode = subnode;
 		}
 	}
