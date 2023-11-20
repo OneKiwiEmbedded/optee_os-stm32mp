@@ -194,6 +194,4 @@ struct stm32_tamp_platdata {
 	bool is_wakeup_source;
 };
 
-TEE_Result stm32_tamp_get_platdata(struct stm32_tamp_platdata *pdata);
-
 #endif /* __DRIVERS_STM32_TAMP_H__ */

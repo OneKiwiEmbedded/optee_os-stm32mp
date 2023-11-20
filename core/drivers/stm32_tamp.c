@@ -1236,7 +1236,6 @@ static enum itr_return stm32_tamp_it_handler(struct itr_handler *h)
 	return ITRR_HANDLED;
 }
 
-#ifdef CFG_EMBED_DTB
 static void stm32_tamp_configure_pin(uint32_t id,
 				     struct stm32_pinctrl *pinctrl, bool out,
 				     struct stm32_tamp_platdata *pdata)
@@ -1650,29 +1649,6 @@ static TEE_Result stm32_tamp_parse_fdt(struct stm32_tamp_platdata *pdata,
 	return TEE_SUCCESS;
 }
 
-__weak
-TEE_Result stm32_tamp_get_platdata(struct stm32_tamp_platdata *pdata __unused)
-{
-	/* In DT config, the platform data are filled by DT file */
-	return TEE_SUCCESS;
-}
-#else /* CFG_EMBED_DTB */
-static
-TEE_Result stm32_tamp_parse_fdt(struct stm32_tamp_platdata *pdata,
-				const void *fdt, int node, const void *compat)
-{
-	/* Do nothing, there is no fdt to parse in this case */
-	return TEE_SUCCESS;
-}
-
-/* This function can be overridden by platform to define pdata of tamp driver */
-__weak
-TEE_Result stm32_tamp_get_platdata(struct stm32_tamp_platdata *pdata __unused)
-{
-	return TEE_ERROR_NOT_SUPPORTED;
-}
-#endif /* CFG_EMBED_DTB */
-
 static TEE_Result stm32_tamp_probe(const void *fdt, int node,
 				   const void *compat_data)
 {
@@ -1680,10 +1656,6 @@ static TEE_Result stm32_tamp_probe(const void *fdt, int node,
 	TEE_Result res = TEE_SUCCESS;
 	vaddr_t base = 0;
 	int subnode = -FDT_ERR_NOTFOUND;
-
-	res = stm32_tamp_get_platdata(&stm32_tamp.pdata);
-	if (res)
-		return res;
 
 	res = stm32_tamp_parse_fdt(&stm32_tamp.pdata, fdt, node, compat_data);
 	if (res)
