@@ -163,17 +163,25 @@
 						  U(3) + U(8)))
 
 /* _TAMP_OR bit fields */
-#define _TAMP_OR_IN1RMP_PF10		0U
-#define _TAMP_OR_IN1RMP_PC13		BIT(0)
-#define _TAMP_OR_IN2RMP_PA6		0U
-#define _TAMP_OR_IN2RMP_PI1		BIT(1)
-#define _TAMP_OR_IN3RMP_PC0		0U
-#define _TAMP_OR_IN3RMP_PI2		BIT(2)
-#define _TAMP_OR_IN4RMP_PG8		0U
-#define _TAMP_OR_IN4RMP_PI3		BIT(3)
+#define _TAMP_STM32MP13_OR_IN1RMP_PF10		U(0)
+#define _TAMP_STM32MP13_OR_IN1RMP_PC13		BIT(0)
+#define _TAMP_STM32MP13_OR_IN2RMP_PA6		U(0)
+#define _TAMP_STM32MP13_OR_IN2RMP_PI1		BIT(1)
+#define _TAMP_STM32MP13_OR_IN3RMP_PC0		U(0)
+#define _TAMP_STM32MP13_OR_IN3RMP_PI2		BIT(2)
+#define _TAMP_STM32MP13_OR_IN4RMP_PG8		U(0)
+#define _TAMP_STM32MP13_OR_IN4RMP_PI3		BIT(3)
 
-#define _TAMP_OR_OUT3RMP_PI8		0U
-#define _TAMP_OR_OUT3RMP_PC13		BIT(0)
+/* For STM32MP15x, _TAMP_CFGR is _TAMP_OR */
+#define _TAMP_STM32MP15_OR_OUT3RMP_PI8		U(0)
+#define _TAMP_STM32MP15_OR_OUT3RMP_PC13		BIT(0)
+
+#define _TAMP_STM32MP25_OR_IN1RMP_PC4		U(0)
+#define _TAMP_STM32MP25_OR_IN1RMP_PI8		BIT(0)
+#define _TAMP_STM32MP25_OR_IN3RMP_PC3		U(0)
+#define _TAMP_STM32MP25_OR_IN3RMP_PZ2		BIT(1)
+#define _TAMP_STM32MP25_OR_IN5RMP_PF6		U(0)
+#define _TAMP_STM32MP25_OR_IN5RMP_PZ4		BIT(2)
 
 /* _TAMP_ERCFGR bit fields */
 #define _TAMP_ERCFGR_ERCFG0		BIT(0)
@@ -291,6 +299,25 @@ static const char * const itamper_name[] = {
 DECLARE_KEEP_PAGER(itamper_name);
 #endif
 
+#ifdef CFG_STM32MP25
+static const char * const itamper_name[] = {
+	[INT_TAMP1] = "Backup domain voltage threshold monitoring",
+	[INT_TAMP2] = "Temperature monitoring",
+	[INT_TAMP3] = "LSE monitoring",
+	[INT_TAMP4] = "HSE monitoring",
+	[INT_TAMP5] = "RTC Calendar overflow",
+	[INT_TAMP6] = "JTAG/SWD access",
+	[INT_TAMP7] = "VDDCORE monitoring under/over voltage",
+	[INT_TAMP8] = "Monotonic counter 1 overflow",
+	[INT_TAMP9] = "Cryptographic peripherals fault",
+	[INT_TAMP10] = "Monotonic counter 2 overflow",
+	[INT_TAMP11] = "IWDG3 reset",
+	[INT_TAMP12] = "VDDCPU monitoring under/over voltage",
+	[INT_TAMP14] = "IWDG5_reset",
+	[INT_TAMP15] = "IWDG1_reset",
+};
+#endif
+
 static struct stm32_tamp_conf int_tamp_mp13[] = {
 	{ .id = INT_TAMP1 }, { .id = INT_TAMP2 }, { .id = INT_TAMP3 },
 	{ .id = INT_TAMP4 }, { .id = INT_TAMP5 }, { .id = INT_TAMP6 },
@@ -304,6 +331,15 @@ static struct stm32_tamp_conf int_tamp_mp15[] = {
 	{ .id = INT_TAMP4 }, { .id = INT_TAMP5 }, { .id = INT_TAMP8 },
 };
 
+static struct stm32_tamp_conf int_tamp_mp25[] = {
+	{ .id = INT_TAMP1 }, { .id = INT_TAMP2 }, { .id = INT_TAMP3 },
+	{ .id = INT_TAMP4 }, { .id = INT_TAMP5 }, { .id = INT_TAMP6 },
+	{ .id = INT_TAMP7 }, { .id = INT_TAMP8 }, { .id = INT_TAMP9 },
+	{ .id = INT_TAMP10 }, { .id = INT_TAMP11 },
+	{ .id = INT_TAMP12 }, { .id = INT_TAMP14 },
+	{ .id = INT_TAMP15 },
+};
+
 static struct stm32_tamp_conf ext_tamp_mp13[] = {
 	{ .id = EXT_TAMP1 }, { .id = EXT_TAMP2 }, { .id = EXT_TAMP3 },
 	{ .id = EXT_TAMP4 }, { .id = EXT_TAMP5 }, { .id = EXT_TAMP6 },
@@ -314,31 +350,52 @@ static struct stm32_tamp_conf ext_tamp_mp15[] = {
 	{ .id = EXT_TAMP1 }, { .id = EXT_TAMP2 }, { .id = EXT_TAMP3 },
 };
 
+static struct stm32_tamp_conf ext_tamp_mp25[] = {
+	{ .id = EXT_TAMP1 }, { .id = EXT_TAMP2 }, { .id = EXT_TAMP3 },
+	{ .id = EXT_TAMP4 }, { .id = EXT_TAMP5 }, { .id = EXT_TAMP6 },
+	{ .id = EXT_TAMP7 }, { .id = EXT_TAMP8 },
+};
+
 #define GPIO_BANK(port)	 ((port) - 'A')
 
 static const struct stm32_tamp_pin_map pin_map_mp13[] = {
 	{
 		.id = EXT_TAMP1, .bank = GPIO_BANK('C'), .pin = 13,
-		.out = false, .conf = _TAMP_OR_IN1RMP_PC13
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN1RMP_PC13,
 	},
 	{
 		.id = EXT_TAMP2, .bank = GPIO_BANK('I'), .pin = 1,
-		.out = false, .conf = _TAMP_OR_IN2RMP_PI1
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN2RMP_PI1,
 	},
 	{
 		.id = EXT_TAMP3, .bank = GPIO_BANK('I'), .pin = 2,
-		.out = false, .conf = _TAMP_OR_IN3RMP_PI2
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN3RMP_PI2,
 	},
 	{
 		.id = EXT_TAMP4, .bank = GPIO_BANK('I'), .pin = 3,
-		.out = false, .conf = _TAMP_OR_IN4RMP_PI3
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN4RMP_PI3,
 	},
 };
 
 static const struct stm32_tamp_pin_map pin_map_mp15[] = {
 	{
 		.id = OUT_TAMP3, .bank = GPIO_BANK('C'), .pin = 13,
-		.out = true, .conf = _TAMP_OR_OUT3RMP_PC13
+		.out = true, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PC13,
+	},
+};
+
+static const struct stm32_tamp_pin_map pin_map_mp25[] = {
+	{
+		.id = EXT_TAMP1, .bank = GPIO_BANK('I'), .pin = 8,
+		.out = false, .conf = _TAMP_STM32MP25_OR_IN1RMP_PI8,
+	},
+	{
+		.id = EXT_TAMP3, .bank = GPIO_BANK('Z'), .pin = 2,
+		.out = false, .conf = _TAMP_STM32MP25_OR_IN3RMP_PZ2,
+	},
+	{
+		.id = EXT_TAMP5, .bank = GPIO_BANK('Z'), .pin = 4,
+		.out = false, .conf = _TAMP_STM32MP25_OR_IN5RMP_PZ4,
 	},
 };
 
@@ -617,11 +674,9 @@ static TEE_Result stm32_tamp_set_int_config(struct stm32_tamp_compat *tcompat,
 			*cr3 &= ~_TAMP_CR3_ITAMPNOER(id);
 	}
 
-#ifndef CFG_STM32MP25
 	DMSG("'%s' internal tamper enabled in %s mode",
 	     itamper_name[id - INT_TAMP1],
 	     (tamp_int->mode & TAMP_NOERASE) ? "potential" : "confirmed");
-#endif
 
 	return TEE_SUCCESS;
 }
@@ -1549,12 +1604,11 @@ stm32_tamp_parse_passive_conf(const void *fdt, int node,
 static uint32_t stm32_tamp_itamper_action(int __maybe_unused id)
 {
 	const char __maybe_unused *tamp_name = NULL;
-#ifndef CFG_STM32MP25
+
 	if (id >= 0 && ((size_t)id < ARRAY_SIZE(itamper_name)))
 		tamp_name = itamper_name[id];
 
 	MSG("Internal tamper %u (%s) occurs", id - INT_TAMP1 + 1, tamp_name);
-#endif
 
 	return TAMP_CB_ACK_AND_RESET;
 }
@@ -1972,6 +2026,7 @@ static const struct stm32_tamp_compat mp15_compat = {
 };
 
 static const struct stm32_tamp_compat mp25_compat = {
+		.nb_monotonic_counter = 2,
 		.tags = TAMP_HAS_REGISTER_SECCFGR |
 			TAMP_HAS_REGISTER_PRIVCFGR |
 			TAMP_HAS_RIF_SUPPORT |
@@ -1979,6 +2034,12 @@ static const struct stm32_tamp_compat mp25_compat = {
 			TAMP_HAS_REGISTER_CR3 |
 			TAMP_HAS_REGISTER_ATCR2 |
 			TAMP_HAS_CR2_SECRET_STATUS,
+		.int_tamp = int_tamp_mp25,
+		.int_tamp_size = ARRAY_SIZE(int_tamp_mp25),
+		.ext_tamp = ext_tamp_mp25,
+		.ext_tamp_size = ARRAY_SIZE(ext_tamp_mp25),
+		.pin_map = pin_map_mp25,
+		.pin_map_size = ARRAY_SIZE(pin_map_mp25),
 };
 
 static const struct dt_device_match stm32_tamp_match_table[] = {
