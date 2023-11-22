@@ -3415,7 +3415,7 @@ static STM32_FIXED_RATE(ck_off, RCC_0_MHZ);
 static STM32_FIXED_RATE(ck_obser0, 0);
 static STM32_FIXED_RATE(ck_obser1, 0);
 static STM32_FIXED_RATE(spdifsymb, 0);
-static STM32_FIXED_RATE(clk_dsi_phy, 0);
+static STM32_FIXED_RATE(txbyteclk, 27000000);
 
 /* Oscillator clocks */
 static STM32_OSC(ck_hsi, 0, GATE_HSI);
@@ -3836,7 +3836,7 @@ static STM32_COMPOSITE(ck_ker_usb3pciephy, 2, PARENT(&ck_flexgen_34,
 		       &ck_hse_div2),
 		       0, GATE_USB3PCIEPHY, NO_DIV, MUX_USB3PCIEPHY);
 
-static STM32_COMPOSITE(clk_lanebyte, 2, PARENT(&clk_dsi_phy, &ck_ker_ltdc),
+static STM32_COMPOSITE(clk_lanebyte, 2, PARENT(&txbyteclk, &ck_ker_ltdc),
 		       0, GATE_DSI, NO_DIV, MUX_DSIBLANE);
 
 static STM32_COMPOSITE(ck_phy_dsi, 2, PARENT(&ck_flexgen_28, &ck_hse),
@@ -3853,7 +3853,7 @@ enum {
 	I2SCKIN,
 	SPDIFSYMB,
 	CK_HSE_RTC,
-	DSIPHY,
+	TXBYTECLK,
 	CK_OBSER0,
 	CK_OBSER1,
 	STM32MP25_ALL_CLK_NB
@@ -4221,7 +4221,7 @@ struct clk *stm32mp25_clk_provided[STM32MP25_ALL_CLK_NB] = {
 	[CK_OFF]		= &ck_off,
 	[I2SCKIN]		= &i2sckin,
 	[SPDIFSYMB]		= &spdifsymb,
-	[DSIPHY]		= &clk_dsi_phy,
+	[TXBYTECLK]		= &txbyteclk,
 };
 
 static void clk_stm32_set_flexgen_as_critical(void)
