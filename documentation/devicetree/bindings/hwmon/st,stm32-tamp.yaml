@@ -4,7 +4,7 @@
 $id: http://devicetree.org/schemas/hwmon/st,stm32-tamp.yaml#
 $schema: http://devicetree.org/meta-schemas/core.yaml#
 
-title: STMicroelectronics STM32 Tamper bindings
+title: STMicroelectronics STM32 Tamper
 
 maintainers:
   - Nicolas Toromanoff <nicolas.toromanoff@st.com>
@@ -117,15 +117,34 @@ properties:
           RIF_CFEN, enables the CID filtering
           RIF_CFDIS, disables the CID filtering
 
+  st,tamp-internal-tampers:
+    $ref: "/schemas/types.yaml#/definitions/uint32-array"
+    description:
+      List of the internal tamper detection cells to be enabled and whether they
+      should be enabled in potential or confirmed mode. Each entry is composed
+      of 2 arguments. The first one is the ID of the tamper to activate. The
+      second one is the mode.
+
+  st,tamp-mode:
+    description:
+      Only for external tampers.
+      Either TAMPER_CONFIRMED_MODE or TAMPER_POTENTIAL_MODE to configure the
+      external tamper either in confirmed or potential mode.
+
+  st,tamp-id:
+    $ref: "/schemas/types.yaml#/definitions/uint32"
+    description: ID of a tamper event
+    minimum: 0
+    maximum: 32
+
 patternProperties:
-  "^tamp_passive@[0-9]+$":
-    description: Describe the passive tamper with its allocated pinctrl.
+  "^tamp-passive@[0-9]+$":
+    description: Describes the passive tamper with its allocated pinctrl.
     type: object
 
-  "^tamp_active@[0-9]+$":
+  "^tamp-active@[0-9]+$":
     type: object
-    description:
-            Describe the active tamper with its allocated pinctrl.
+    description: Describes the active tamper with its allocated pinctrl.
 
 required:
   - compatible
