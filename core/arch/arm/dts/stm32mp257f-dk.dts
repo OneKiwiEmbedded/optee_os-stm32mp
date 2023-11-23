@@ -14,6 +14,7 @@
 #include <dt-bindings/soc/stm32mp25-risab.h>
 #include <dt-bindings/soc/stm32mp25-risaf.h>
 #include <dt-bindings/soc/stm32mp25-rifsc.h>
+#include <dt-bindings/tamper/st,stm32mp25-tamp.h>
 #include "stm32mp257.dtsi"
 #include "stm32mp25xf.dtsi"
 #include "stm32mp257f-dk-ca35tdcid-rcc.dtsi"
@@ -452,6 +453,20 @@
 	scmi_vdd_sdcard: voltd-vdd_sdcard {
 		reg = <VOLTD_SCMI_STPMIC2_LDO7>;
 		voltd-supply = <&vdd_sdcard>;
+	};
+};
+
+&tamp {
+	st,tamp-passive-precharge = <2>;
+	st,tamp_passive_nb_sample = <4>;
+	st,tamp_passive_sample_clk_div = <16384>;
+
+	/* Tamper button */
+	tamp_button: tamp-passive@3 {
+		status = "disabled";
+		reg = <EXT_TAMPER_3 0>;
+		pinctrl-0 = <&tamp_in3_pin_a>;
+		st,tamp-mode = <TAMPER_POTENTIAL_MODE>;
 	};
 };
 
