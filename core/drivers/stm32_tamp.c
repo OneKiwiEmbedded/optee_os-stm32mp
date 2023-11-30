@@ -1707,7 +1707,7 @@ stm32_tamp_parse_active_conf(const void *fdt, int node,
 	uint32_t clk_div = 1;
 	uint32_t conf = 0;
 
-	cuint = fdt_getprop(fdt, node, "st,tamp_active_filter", NULL);
+	cuint = fdt_getprop(fdt, node, "st,tamp-active-filter", NULL);
 	if (cuint)
 		conf |= _TAMP_ATCR1_FLTEN;
 

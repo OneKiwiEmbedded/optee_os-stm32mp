@@ -41,7 +41,7 @@ properties:
     description: Clock divider to define frequency to read a sample for a passive tamper.
     $ref: /schemas/types.yaml#/definitions/uint32
 
-  st,tamp_active_filter:
+  st,tamp-active-filter:
     description: Set the active tamper filtering. 0 when active tamper filtering is disabled.
       1 when active tamper filtering is enabled. A tamper event is detected when 2 comparison
       mismatches occur out of 4 consecutive samples.
