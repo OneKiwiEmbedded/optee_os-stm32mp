@@ -77,14 +77,14 @@
 	tamp_in1_pin_a: tamp-in1-pin-0 {
 		pins {
 			pinmux = <STM32_PINMUX('I', 8, RSVD)>;
-			st,tamp_id = <1>;
+			st,tamp-id = <1>;
 		};
 	};
 
 	tamp_in3_pin_a: tamp-in3-pin-0 {
 		pins {
 			pinmux = <STM32_PINMUX('Z', 2, RSVD)>;
-			st,tamp_id = <3>;
+			st,tamp-id = <3>;
 		};
 	};
 

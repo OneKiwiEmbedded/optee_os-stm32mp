@@ -1431,7 +1431,7 @@ stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
 		pinnode = fdt_node_offset_by_phandle(fdt,
 						     fdt32_to_cpu(cuint[1]));
 		tampid = fdt_getprop(fdt, fdt_first_subnode(fdt, pinnode),
-				     "st,tamp_id", NULL);
+				     "st,tamp-id", NULL);
 		if (!tampid)
 			return TEE_ERROR_BAD_PARAMETERS;
 
@@ -1446,7 +1446,7 @@ stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
 	/* We now configure first pin */
 	pinnode = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(cuint[0]));
 	tampid = fdt_getprop(fdt, fdt_first_subnode(fdt, pinnode),
-			     "st,tamp_id", NULL);
+			     "st,tamp-id", NULL);
 	if (!tampid)
 		return TEE_ERROR_BAD_PARAMETERS;
 
