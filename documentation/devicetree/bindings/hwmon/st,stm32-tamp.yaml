@@ -48,7 +48,7 @@ properties:
     $ref: /schemas/types.yaml#/definitions/uint32
     enum: [0, 1]
 
-  st,tamp_active_clk_div:
+  st,tamp-active-clk-div:
     description: clock divider to define the frequency of read/write cycle for all active tampers.
     $ref: /schemas/types.yaml#/definitions/uint32
 

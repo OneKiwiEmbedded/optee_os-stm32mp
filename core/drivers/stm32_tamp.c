@@ -1715,7 +1715,7 @@ stm32_tamp_parse_active_conf(const void *fdt, int node,
 	 * Here we will select a divisor for the RTCCLK.
 	 * Note that RTCCLK is also divided by (RTC_PRER_PREDIV_A - 1).
 	 */
-	cuint = fdt_getprop(fdt, node, "st,tamp_active_clk_div", NULL);
+	cuint = fdt_getprop(fdt, node, "st,tamp-active-clk-div", NULL);
 	if (cuint)
 		clk_div = fdt32_to_cpu(*cuint);
 
