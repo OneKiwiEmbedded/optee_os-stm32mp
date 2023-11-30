@@ -25,7 +25,7 @@ properties:
   interrupts:
     maxItems: 1
 
-  st,tamp_passive_precharge:
+  st,tamp-passive-precharge:
     description: 0 is no precharge, so the pull-up is disabled for all external passive tamper.
        1, 2, 3, 4, 8 define the number of cycle the STM32 precharge the pin before
        checking the value (low/high) for all external tamper.
@@ -55,8 +55,8 @@ properties:
   st,trig_on:
     description: Defines the active level to activate this passive tamper
       (not used if pintctrl-0 as 2 entries).
-      It also depends on st,tamp_passive_precharge value. When st,tamp_passive_precharge=0
-      this passive tamper activate at edge. When st,tamp_passive_precharge != 0, with st,trig_on
+      It also depends on st,tamp-passive-precharge value. When st,tamp-passive-precharge=0
+      this passive tamper activate at edge. When st,tamp-passive-precharge != 0, with st,trig_on
       defined, this passive tamper will activate if st,tamp-passive-nb-sample in a row are high.
       If not defined the passive tamper event is raised if st,tamp-passive-nb-sample in a row
       are low.

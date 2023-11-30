@@ -1492,7 +1492,7 @@ stm32_tamp_parse_passive_conf(const void *fdt, int node,
 	uint32_t clk_div = 32768;
 	uint32_t conf = 0;
 
-	cuint = fdt_getprop(fdt, node, "st,tamp_passive_precharge", NULL);
+	cuint = fdt_getprop(fdt, node, "st,tamp-passive-precharge", NULL);
 	if (cuint)
 		precharge = fdt32_to_cpu(*cuint);
 
