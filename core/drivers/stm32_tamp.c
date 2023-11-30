@@ -364,12 +364,28 @@ static const struct stm32_tamp_pin_map pin_map_mp13[] = {
 		.out = false, .conf = _TAMP_STM32MP13_OR_IN1RMP_PC13,
 	},
 	{
+		.id = EXT_TAMP1, .bank = GPIO_BANK('F'), .pin = 10,
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN1RMP_PF10,
+	},
+	{
+		.id = EXT_TAMP2, .bank = GPIO_BANK('A'), .pin = 6,
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN2RMP_PA6,
+	},
+	{
 		.id = EXT_TAMP2, .bank = GPIO_BANK('I'), .pin = 1,
 		.out = false, .conf = _TAMP_STM32MP13_OR_IN2RMP_PI1,
 	},
 	{
+		.id = EXT_TAMP3, .bank = GPIO_BANK('C'), .pin = 0,
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN3RMP_PC0,
+	},
+	{
 		.id = EXT_TAMP3, .bank = GPIO_BANK('I'), .pin = 2,
 		.out = false, .conf = _TAMP_STM32MP13_OR_IN3RMP_PI2,
+	},
+	{
+		.id = EXT_TAMP4, .bank = GPIO_BANK('G'), .pin = 8,
+		.out = false, .conf = _TAMP_STM32MP13_OR_IN4RMP_PG8,
 	},
 	{
 		.id = EXT_TAMP4, .bank = GPIO_BANK('I'), .pin = 3,
@@ -382,6 +398,10 @@ static const struct stm32_tamp_pin_map pin_map_mp15[] = {
 		.id = OUT_TAMP3, .bank = GPIO_BANK('C'), .pin = 13,
 		.out = true, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PC13,
 	},
+	{
+		.id = OUT_TAMP3, .bank = GPIO_BANK('I'), .pin = 8,
+		.out = true, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PI8,
+	},
 };
 
 static const struct stm32_tamp_pin_map pin_map_mp25[] = {
@@ -390,8 +410,20 @@ static const struct stm32_tamp_pin_map pin_map_mp25[] = {
 		.out = false, .conf = _TAMP_STM32MP25_OR_IN1RMP_PI8,
 	},
 	{
+		.id = EXT_TAMP1, .bank = GPIO_BANK('C'), .pin = 4,
+		.out = false, .conf = _TAMP_STM32MP25_OR_IN1RMP_PC4,
+	},
+	{
+		.id = EXT_TAMP3, .bank = GPIO_BANK('C'), .pin = 3,
+		.out = false, .conf = _TAMP_STM32MP25_OR_IN3RMP_PC3,
+	},
+	{
 		.id = EXT_TAMP3, .bank = GPIO_BANK('Z'), .pin = 2,
 		.out = false, .conf = _TAMP_STM32MP25_OR_IN3RMP_PZ2,
+	},
+	{
+		.id = EXT_TAMP5, .bank = GPIO_BANK('F'), .pin = 6,
+		.out = false, .conf = _TAMP_STM32MP25_OR_IN5RMP_PF6,
 	},
 	{
 		.id = EXT_TAMP5, .bank = GPIO_BANK('Z'), .pin = 4,
