@@ -14,6 +14,7 @@
 #include <dt-bindings/soc/stm32mp-tzc400-macro.h>
 #include <dt-bindings/soc/stm32mp13-etzpc.h>
 #include <dt-bindings/soc/stm32mp13-tzc400.h>
+#include <dt-bindings/tamper/st,stm32mp13-tamp.h>
 #include "stm32mp135.dtsi"
 #include "stm32mp13xf.dtsi"
 #include "stm32mp13-pinctrl.dtsi"
@@ -637,14 +638,19 @@
 	st,tamp-passive-nb-sample = <4>;
 	st,tamp-passive-sample-clk-div = <16384>;
 
-	tamp_passive@2 {
-		pinctrl-0 = <&tamp0_in2_pin_a>;
+	/* Tamper button */
+	tamp_button: tamp-passive@2 {
 		status = "okay";
+		reg = <EXT_TAMPER_2 0>;
+		pinctrl-0 = <&tamp0_in2_pin_a>;
+		st,tamp-mode = <TAMPER_CONFIRMED_MODE>;
 	};
 
 	/* Connect pin8 and pin22 from CN8 */
-	tamp_active@1 {
+	tamp-active@3 {
 		pinctrl-0 = <&tamp0_in3_pin_a &tamp0_out1_pin_a>;
+		reg = <EXT_TAMPER_3 0>;
+		st,tamp-mode = <TAMPER_POTENTIAL_MODE>;
 		status = "disabled";
 	};
 };
