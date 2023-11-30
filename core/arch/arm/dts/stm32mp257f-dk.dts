@@ -459,7 +459,7 @@
 &tamp {
 	st,tamp-passive-precharge = <2>;
 	st,tamp-passive-nb-sample = <4>;
-	st,tamp_passive_sample_clk_div = <16384>;
+	st,tamp-passive-sample-clk-div = <16384>;
 
 	/* Tamper button */
 	tamp_button: tamp-passive@3 {

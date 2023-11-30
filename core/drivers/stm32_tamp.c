@@ -1500,7 +1500,7 @@ stm32_tamp_parse_passive_conf(const void *fdt, int node,
 	if (cuint)
 		nb_sample = fdt32_to_cpu(*cuint);
 
-	cuint = fdt_getprop(fdt, node, "st,tamp_passive_sample_clk_div", NULL);
+	cuint = fdt_getprop(fdt, node, "st,tamp-passive-sample-clk-div", NULL);
 	if (cuint)
 		clk_div = fdt32_to_cpu(*cuint);
 

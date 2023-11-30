@@ -37,7 +37,7 @@ properties:
     $ref: /schemas/types.yaml#/definitions/uint32
     enum: [0, 2, 4, 8]
 
-  st,tamp_passive_sample_clk_div:
+  st,tamp-passive-sample-clk-div:
     description: Clock divider to define frequency to read a sample for a passive tamper.
     $ref: /schemas/types.yaml#/definitions/uint32
 

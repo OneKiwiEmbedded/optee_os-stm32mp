@@ -635,7 +635,7 @@
 &tamp {
 	status = "okay";
 	st,tamp-passive-nb-sample = <4>;
-	st,tamp_passive_sample_clk_div = <16384>;
+	st,tamp-passive-sample-clk-div = <16384>;
 
 	tamp_passive@2 {
 		pinctrl-0 = <&tamp0_in2_pin_a>;
