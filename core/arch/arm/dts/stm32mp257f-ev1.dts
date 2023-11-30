@@ -477,7 +477,7 @@
 
 &tamp {
 	st,tamp_passive_precharge = <2>;
-	st,tamp_passive_nb_sample = <4>;
+	st,tamp-passive-nb-sample = <4>;
 	st,tamp_passive_sample_clk_div = <16384>;
 
 	/* Tamper button */

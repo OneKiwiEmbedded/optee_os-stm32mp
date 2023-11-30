@@ -32,7 +32,7 @@ properties:
     $ref: /schemas/types.yaml#/definitions/uint32
     enum: [0, 1, 2, 4, 8]
 
-  st,tamp_passive_nb_sample:
+  st,tamp-passive-nb-sample:
     description: The number of sample to read in a row to raise a passive tamper.
     $ref: /schemas/types.yaml#/definitions/uint32
     enum: [0, 2, 4, 8]
@@ -57,8 +57,8 @@ properties:
       (not used if pintctrl-0 as 2 entries).
       It also depends on st,tamp_passive_precharge value. When st,tamp_passive_precharge=0
       this passive tamper activate at edge. When st,tamp_passive_precharge != 0, with st,trig_on
-      defined, this passive tamper will activate if st,tamp_passive_nb_sample in a row are high.
-      If not defined the passive tamper event is raised if st,tamp_passive_nb_sample in a row
+      defined, this passive tamper will activate if st,tamp-passive-nb-sample in a row are high.
+      If not defined the passive tamper event is raised if st,tamp-passive-nb-sample in a row
       are low.
     type: boolean
 
