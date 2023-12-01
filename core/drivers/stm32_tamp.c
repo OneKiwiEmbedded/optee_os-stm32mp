@@ -1907,6 +1907,11 @@ static TEE_Result stm32_tamp_probe(const void *fdt, int node,
 	vaddr_t base = 0;
 	int subnode = -FDT_ERR_NOTFOUND;
 
+	/* Manage dependency on RTC driver */
+	res = stm32_rtc_driver_is_initialized();
+	if (res)
+		return res;
+
 	res = stm32_tamp_parse_fdt(&stm32_tamp.pdata, fdt, node, compat_data);
 	if (res)
 		return res;
