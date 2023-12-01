@@ -137,6 +137,13 @@ properties:
     minimum: 0
     maximum: 32
 
+  st,tamp-mask-pot-reset:
+    type: boolean
+    description:
+      Mask the reset control line of some resources when a potential tamper
+      occurs. Please refer to the SoC reference manual to see what resource
+      it concerns.
+
 patternProperties:
   "^tamp-passive@[0-9]+$":
     description: Describes the passive tamper with its allocated pinctrl.
