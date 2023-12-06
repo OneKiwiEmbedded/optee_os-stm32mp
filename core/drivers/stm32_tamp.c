@@ -398,6 +398,22 @@ static const struct stm32_tamp_pin_map pin_map_mp13[] = {
 
 static const struct stm32_tamp_pin_map pin_map_mp15[] = {
 	{
+		.id = EXT_TAMP1, .bank = GPIO_BANK('C'), .pin = 13,
+		.out = false, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PI8,
+	},
+	{
+		.id = EXT_TAMP2, .bank = GPIO_BANK('I'), .pin = 8,
+		.out = false, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PI8,
+	},
+	{
+		.id = EXT_TAMP3, .bank = GPIO_BANK('C'), .pin = 1,
+		.out = false, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PI8,
+	},
+	{
+		.id = OUT_TAMP2, .bank = GPIO_BANK('C'), .pin = 13,
+		.out = true, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PI8,
+	},
+	{
 		.id = OUT_TAMP3, .bank = GPIO_BANK('C'), .pin = 13,
 		.out = true, .conf = _TAMP_STM32MP15_OR_OUT3RMP_PC13,
 	},
