@@ -162,7 +162,6 @@ $(call force,CFG_STM32_EXTI,y)
 $(call force,CFG_STM32_GPIO,y)
 $(call force,CFG_STM32_HSE_MONITORING,y)
 $(call force,CFG_STM32MP_CLK_CORE,y)
-$(call force,CFG_RPROC_PTA,n)
 $(call force,CFG_STM32MP1_OPTEE_IN_SYSRAM,n)
 $(call force,CFG_STM32MP1_SCMI_SIP,n)
 $(call force,CFG_STM32MP1_SHARED_RESOURCES,n)
@@ -240,8 +239,6 @@ CFG_TUI_FRAME_BUFFER_SIZE_MAX ?= 0x01000000
 CFG_RESERVED_VASPACE_SIZE ?= (10 * 1024 * 1024 + $(CFG_TUI_FRAME_BUFFER_SIZE_MAX))
 endif
 
-# Embed public part of this key in OP-TEE OS
-CFG_RPROC_SIGN_KEY ?= keys/default_rproc.pem
 
 ifneq ($(filter $(CFG_EMBED_DTB_SOURCE_FILE),$(flavorlist-512M)),)
 CFG_DRAM_SIZE    ?= 0x20000000
