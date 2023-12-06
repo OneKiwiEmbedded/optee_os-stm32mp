@@ -369,7 +369,6 @@ static void setup_scmi_server_resources(void)
 		.desc = &stm32_scp_rdev_desc,
 		.min_mv = min_cpu_voltage(sorted_dvfs, cpu_opp.opp_count),
 		.max_mv = max_cpu_voltage(sorted_dvfs, cpu_opp.opp_count),
-		.cur_mv = cpu_opp.dvfs[cpu_opp.current_opp].volt_mv,
 		.reg_name = "stm32-cpu-opp",
 	};
 

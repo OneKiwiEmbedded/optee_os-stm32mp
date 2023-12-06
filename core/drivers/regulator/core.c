@@ -283,19 +283,23 @@ bool regulator_is_enabled(const struct rdev *rdev)
 TEE_Result regulator_set_voltage(struct rdev *rdev, uint16_t mvolt)
 {
 	TEE_Result res = TEE_ERROR_GENERIC;
+	uint16_t cur_mv = 0;
 
 	assert(rdev);
 
 	FMSG("%s %"PRIu16"mV", rdev->desc->node_name, mvolt);
 
-	if (rdev->cur_mv == mvolt)
+	if (mvolt < rdev->min_mv || mvolt > rdev->max_mv)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	res = regulator_get_voltage(rdev, &cur_mv);
+	if (res)
+		return res;
+	if (cur_mv == mvolt)
 		return TEE_SUCCESS;
 
 	if (!rdev->desc->ops->set_voltage)
 		return TEE_ERROR_NOT_IMPLEMENTED;
-
-	if (mvolt < rdev->min_mv || mvolt > rdev->max_mv)
-		return TEE_ERROR_BAD_PARAMETERS;
 
 	lock_driver(rdev);
 	res = rdev->desc->ops->set_voltage(rdev->desc, mvolt);
@@ -310,18 +314,16 @@ TEE_Result regulator_set_voltage(struct rdev *rdev, uint16_t mvolt)
 	if (rdev->ramp_delay_uv_per_us > 0) {
 		unsigned int d = 0;
 
-		if (rdev->cur_mv > mvolt)
-			d = rdev->cur_mv - mvolt;
+		if (cur_mv > mvolt)
+			d = cur_mv - mvolt;
 		else
-			d = mvolt - rdev->cur_mv;
+			d = mvolt - cur_mv;
 
 		d = (d * 1000) / rdev->ramp_delay_uv_per_us;
 
 		FMSG("%s %"PRIu32"uS", rdev->desc->node_name, d);
 		udelay(d);
 	}
-
-	rdev->cur_mv = mvolt;
 
 	return res;
 }
@@ -706,8 +708,6 @@ TEE_Result regulator_register(const struct regul_desc *desc, int node)
 		goto out;
 
 	if (regulator_get_voltage(rdev, &mv) == TEE_SUCCESS) {
-		rdev->cur_mv = mv;
-
 		if (mv < rdev->min_mv || mv > rdev->max_mv) {
 			FMSG("Update regulator %s to %"PRIu16"mV",
 			     desc->node_name, rdev->min_mv);

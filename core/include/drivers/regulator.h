@@ -91,7 +91,6 @@ struct rdev {
 	int32_t phandle;
 	uint16_t min_mv;
 	uint16_t max_mv;
-	uint16_t cur_mv;
 	uint16_t flags;
 	uint32_t ramp_delay_uv_per_us;
 	unsigned int enable_ramp_delay_us;
