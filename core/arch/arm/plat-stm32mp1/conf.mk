@@ -240,9 +240,6 @@ CFG_TUI_FRAME_BUFFER_SIZE_MAX ?= 0x01000000
 CFG_RESERVED_VASPACE_SIZE ?= (10 * 1024 * 1024 + $(CFG_TUI_FRAME_BUFFER_SIZE_MAX))
 endif
 
-# Disable early TA compression to limit HEAP size
-CFG_EARLY_TA_COMPRESS ?= n
-
 # Embed public part of this key in OP-TEE OS
 CFG_RPROC_SIGN_KEY ?= keys/default_rproc.pem
 
@@ -258,12 +255,6 @@ CFG_TZSRAM_SIZE  ?= 0x0003f000
 endif #CFG_STM32MP15 && CFG_WITH_PAGER
 CFG_TZDRAM_SIZE  ?= 0x02000000
 CFG_TZDRAM_START ?= ($(CFG_DRAM_BASE) + $(CFG_DRAM_SIZE) - $(CFG_TZDRAM_SIZE))
-
-# Remoteproc early TA for coprocessor firmware management
-CFG_RPROC_PTA ?= n
-ifeq ($(CFG_RPROC_PTA),y)
-CFG_IN_TREE_EARLY_TAS += remoteproc/80a4c275-0a47-4905-8285-1486a9771a08
-endif
 
 CFG_REGULATOR_FIXED ?= y
 CFG_STM32_BSEC ?= y
