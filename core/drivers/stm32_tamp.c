@@ -1522,7 +1522,7 @@ stm32_tamp_configure_pin_from_dt(const void *fdt, int node,
 		if (out_id - OUT_TAMP1 != id - EXT_TAMP1)
 			pdata->active_conf |= _TAMP_ATCR1_ATOSHARE;
 	} else {
-		if (fdt_getprop(fdt, node, "st,trig_on", NULL))
+		if (fdt_getprop(fdt, node, "st,trig-on", NULL))
 			tamp_ext->mode |= TAMP_TRIG_ON;
 	}
 

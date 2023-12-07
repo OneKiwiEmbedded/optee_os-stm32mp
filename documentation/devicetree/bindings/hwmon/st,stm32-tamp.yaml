@@ -52,11 +52,11 @@ properties:
     description: clock divider to define the frequency of read/write cycle for all active tampers.
     $ref: /schemas/types.yaml#/definitions/uint32
 
-  st,trig_on:
+  st,trig-on:
     description: Defines the active level to activate this passive tamper
       (not used if pintctrl-0 as 2 entries).
       It also depends on st,tamp-passive-precharge value. When st,tamp-passive-precharge=0
-      this passive tamper activate at edge. When st,tamp-passive-precharge != 0, with st,trig_on
+      this passive tamper activate at edge. When st,tamp-passive-precharge != 0, with st,trig-on
       defined, this passive tamper will activate if st,tamp-passive-nb-sample in a row are high.
       If not defined the passive tamper event is raised if st,tamp-passive-nb-sample in a row
       are low.
