@@ -199,6 +199,7 @@
 
 /* _TAMP_HWCFGR1 bit fields */
 #define _TAMP_HWCFGR1_BKPREG		GENMASK_32(7, 0)
+#define _TAMP_HWCFGR1_TAMPER_SHIFT	U(8)
 #define _TAMP_HWCFGR1_TAMPER		GENMASK_32(11, 8)
 #define _TAMP_HWCFGR1_ACTIVE		GENMASK_32(15, 12)
 #define _TAMP_HWCFGR1_INTERN		GENMASK_32(31, 16)
@@ -673,16 +674,21 @@ static TEE_Result stm32_tamp_set_seed(vaddr_t base)
 	return TEE_SUCCESS;
 }
 
-static bool is_int_tamp_id_valid(enum stm32_tamp_id id)
+static TEE_Result is_int_tamp_id_valid(enum stm32_tamp_id id)
 {
-	return (id - INT_TAMP1 < _TAMP_HWCFGR1_ITAMP_MAX_ID) &&
-	       (stm32_tamp.hwconf1 & _TAMP_HWCFGR1_ITAMP(id));
+	if (!(id - INT_TAMP1 < _TAMP_HWCFGR1_ITAMP_MAX_ID))
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (!(stm32_tamp.hwconf1 & _TAMP_HWCFGR1_ITAMP(id)))
+		return TEE_ERROR_ITEM_NOT_FOUND;
+
+	return TEE_SUCCESS;
 }
 
 static bool is_ext_tamp_id_valid(enum stm32_tamp_id id)
 {
-	return (stm32_tamp.pdata.compat) &&
-	       (id - EXT_TAMP1 <= stm32_tamp.pdata.compat->ext_tamp_size);
+	return id - EXT_TAMP1 <= (stm32_tamp.hwconf1 & _TAMP_HWCFGR1_TAMPER) >>
+	       _TAMP_HWCFGR1_TAMPER_SHIFT;
 }
 
 static TEE_Result stm32_tamp_set_int_config(struct stm32_tamp_compat *tcompat,
@@ -691,6 +697,7 @@ static TEE_Result stm32_tamp_set_int_config(struct stm32_tamp_compat *tcompat,
 {
 	enum stm32_tamp_id id = INVALID_TAMP;
 	struct stm32_tamp_conf *tamp_int = NULL;
+	TEE_Result res = TEE_ERROR_GENERIC;
 
 	if (!tcompat)
 		return TEE_ERROR_BAD_PARAMETERS;
@@ -698,8 +705,11 @@ static TEE_Result stm32_tamp_set_int_config(struct stm32_tamp_compat *tcompat,
 	tamp_int = &tcompat->int_tamp[itamp_index];
 	id = tamp_int->id;
 
-	if (!is_int_tamp_id_valid(id))
-		return TEE_ERROR_BAD_PARAMETERS;
+	res = is_int_tamp_id_valid(id);
+	if (res == TEE_ERROR_ITEM_NOT_FOUND)
+		return TEE_SUCCESS;
+	else if (res)
+		return res;
 
 	/*
 	 * If there is no callback
