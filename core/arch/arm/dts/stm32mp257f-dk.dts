@@ -325,6 +325,10 @@
 	status = "okay";
 };
 
+&m33_rproc {
+	status = "okay";
+};
+
 &pka {
 	status = "okay";
 };
@@ -403,11 +407,6 @@
 			};
 		};
 	};
-};
-
-&remoteproc_m33 {
-	st,non-secure-loading;
-	status = "okay";
 };
 
 &risaf2 {
