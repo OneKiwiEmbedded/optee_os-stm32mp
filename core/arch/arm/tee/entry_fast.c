@@ -324,6 +324,8 @@ void __tee_entry_fast(struct thread_smc_args *args)
 		break;
 #if defined(CFG_WDT_SM_HANDLER)
 	case OPTEE_SMC_WATCHDOG:
+	/* Consider mainline WDT SMC funcID for compatibility purpose */
+	case 0xbc000000:
 			__wdt_sm_handler(args);
 		break;
 #endif
