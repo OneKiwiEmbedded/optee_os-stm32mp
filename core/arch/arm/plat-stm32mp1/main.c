@@ -16,6 +16,7 @@
 #include <drivers/stm32mp_dt_bindings.h>
 #include <io.h>
 #include <kernel/boot.h>
+#include <kernel/delay.h>
 #include <kernel/dt.h>
 #include <kernel/interrupt.h>
 #include <kernel/misc.h>
@@ -683,3 +684,26 @@ static TEE_Result stm32_hse_monitoring(void)
 
 driver_init_late(stm32_hse_monitoring);
 #endif /* CFG_STM32_HSE_MONITORING */
+
+void __noreturn do_reset(const char *str __maybe_unused)
+{
+	stm32mp_mask_timer();
+
+	if (stm32mp_supports_second_core()) {
+		uint32_t target_mask = 0;
+
+		if (get_core_pos() == 0)
+			target_mask = TARGET_CPU1_GIC_MASK;
+		else
+			target_mask = TARGET_CPU0_GIC_MASK;
+
+		itr_raise_sgi(GIC_SEC_SGI_1, target_mask);
+		/* wait than other core is halted */
+		mdelay(1);
+	}
+	IMSG("Forced system reset %s", str);
+	console_flush();
+	stm32_reset_system();
+	udelay(100);
+	panic();
+}

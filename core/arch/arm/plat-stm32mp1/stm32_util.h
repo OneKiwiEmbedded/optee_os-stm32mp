@@ -255,5 +255,6 @@ static inline bool stm32mp_gpio_bank_is_non_secure(unsigned int bank __unused)
 
 #endif /* CFG_STM32MP1_SHARED_RESOURCES */
 
+void __noreturn do_reset(const char *str);
 
 #endif /*__STM32_UTIL_H__*/
