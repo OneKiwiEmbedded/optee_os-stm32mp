@@ -266,6 +266,7 @@ static TEE_Result stm32mp25_pwr_itr_add(struct itr_handler *hdl)
 	uint32_t exceptions = 0;
 	unsigned int i = 0;
 	bool itr_free = false;
+	TEE_Result res = TEE_SUCCESS;
 
 	FMSG("Pwr IRQ add");
 
@@ -305,6 +306,9 @@ static TEE_Result stm32mp25_pwr_itr_add(struct itr_handler *hdl)
 	stm32mp25_pwr_itr_disable(it);
 
 	stm32_pinctrl_load_config(&pinctrl_list);
+	res = stm32_pinctrl_set_secure_cfg(&pinctrl_list, true);
+	if (res)
+		return res;
 
 	FMSG("Wake-up pin on bank=%"PRIu8" pin=%"PRIu8,
 	     pinctrl->bank, pinctrl->pin);
