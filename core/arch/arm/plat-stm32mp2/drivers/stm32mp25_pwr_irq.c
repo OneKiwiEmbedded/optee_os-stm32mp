@@ -382,7 +382,7 @@ stm32mp25_pwr_irq_probe(const void *fdt, int node, int interrupt)
 			goto err;
 	}
 
-	res = stm32_pinctrl_dt_get_by_index(fdt, node, 0, &priv->pinctrl_list);
+	res = stm32_pinctrl_dt_read_by_index(fdt, node, 0, &priv->pinctrl_list);
 	if (res)
 		goto err;
 
