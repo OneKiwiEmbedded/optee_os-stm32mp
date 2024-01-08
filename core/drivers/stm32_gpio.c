@@ -620,7 +620,8 @@ static __unused void free_banks(void)
 static TEE_Result
 stm32_pinctrl_dt_get_by_idx_prop(const char *prop_name, const void *fdt,
 				 int nodeoffset,
-				 struct stm32_pinctrl_list **plist)
+				 struct stm32_pinctrl_list **plist,
+				 bool load_config)
 {
 	TEE_Result res = TEE_ERROR_GENERIC;
 	int len = 0;
@@ -647,7 +648,8 @@ stm32_pinctrl_dt_get_by_idx_prop(const char *prop_name, const void *fdt,
 			STAILQ_CONCAT(glist, list);
 	}
 
-	stm32_pinctrl_load_config(glist);
+	if (load_config)
+		stm32_pinctrl_load_config(glist);
 
 	*plist = glist;
 
@@ -680,7 +682,7 @@ TEE_Result stm32_pinctrl_dt_get_by_index(const void *fdt, int nodeoffset,
 	}
 
 	return stm32_pinctrl_dt_get_by_idx_prop(prop_name, fdt,
-						nodeoffset, plist);
+						nodeoffset, plist, true);
 }
 
 TEE_Result stm32_pinctrl_dt_get_by_name(const void *fdt, int nodeoffset,
@@ -704,7 +706,24 @@ TEE_Result stm32_pinctrl_dt_get_by_name(const void *fdt, int nodeoffset,
 	}
 
 	return stm32_pinctrl_dt_get_by_idx_prop(prop_name, fdt,
-						nodeoffset, plist);
+						nodeoffset, plist, true);
+}
+
+TEE_Result stm32_pinctrl_dt_read_by_index(const void *fdt, int nodeoffset,
+					  unsigned int index,
+					  struct stm32_pinctrl_list **plist)
+{
+	char prop_name[PROP_NAME_MAX] = { };
+	int check = 0;
+
+	check = snprintf(prop_name, sizeof(prop_name), "pinctrl-%d", index);
+	if (check < 0 || check >= (int)sizeof(prop_name)) {
+		DMSG("Wrong property name for pinctrl");
+		return TEE_ERROR_GENERIC;
+	}
+
+	return stm32_pinctrl_dt_get_by_idx_prop(prop_name, fdt,
+						nodeoffset, plist, false);
 }
 
 static TEE_Result apply_rif_config(struct stm32_gpio_bank *bank)

@@ -122,6 +122,21 @@ TEE_Result stm32_pinctrl_dt_get_by_index(const void *fdt, int nodeoffset,
 TEE_Result stm32_pinctrl_dt_get_by_name(const void *fdt, int nodeoffset,
 					const char *name,
 					struct stm32_pinctrl_list **plist);
+/*
+ * Read a pinctrl configuration from an indexed DT pinctrl property
+ * this configuration is not applied as it is done in
+ * stm32_pinctrl_dt_get_by_index()
+ *
+ * @fdt: device tree
+ * @node: device node in the device tree
+ * @index: Index of the pinctrl property
+ * @plist: Output pinctrl list reference
+ *
+ * Return a TEE_Result compliant code
+ */
+TEE_Result stm32_pinctrl_dt_read_by_index(const void *fdt, int nodeoffset,
+					  unsigned int index,
+					  struct stm32_pinctrl_list **plist);
 
 /*
  * Get the gpio_ops handle for a GPIO
