@@ -30,4 +30,6 @@ void may_spin_unlock(unsigned int *lock, uint32_t exceptions);
 bool stm32mp_supports_cpu_opp(uint32_t opp_id);
 #endif /*CFG_STM32_CPU_OPP*/
 
+void __noreturn do_reset(const char *str);
+
 #endif /*__STM32_UTIL_H__*/
