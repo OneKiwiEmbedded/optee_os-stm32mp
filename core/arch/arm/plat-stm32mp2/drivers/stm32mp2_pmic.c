@@ -340,6 +340,10 @@ static const struct regul_property prop_table[] = {
 		.name = "st,regulator-bypass-microvolt",
 		.prop = STPMIC2_BYPASS_UV,
 	},
+	{
+		.name = "st,alternate-input-source",
+		.prop = STPMIC2_ALTERNATE_INPUT_SOURCE,
+	},
 };
 
 TEE_Result stpmic2_set_prop(const struct regul_desc *desc,
