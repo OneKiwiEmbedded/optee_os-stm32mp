@@ -19,7 +19,6 @@
 #include <kernel/interrupt.h>
 #include <libfdt.h>
 #include <mm/core_memprot.h>
-#include <sm/psci.h>
 #include <stdbool.h>
 #ifdef CFG_STM32MP25
 #include <stm32_sysconf.h>
@@ -1392,10 +1391,8 @@ static enum itr_return stm32_tamp_it_handler(struct itr_handler *h)
 				io_setbits32(base + _TAMP_SCR,
 					     _TAMP_SCR_ITAMP(id));
 
-#ifndef CFG_STM32MP25
 			if (ret & TAMP_CB_RESET)
-				psci_system_reset();
-#endif
+				do_reset("TAMPER");
 		}
 		i++;
 	}
@@ -1417,10 +1414,8 @@ static enum itr_return stm32_tamp_it_handler(struct itr_handler *h)
 				io_setbits32(base + _TAMP_SCR,
 					     _TAMP_SCR_ETAMP(id));
 
-#ifndef CFG_STM32MP25
 			if (ret & TAMP_CB_RESET)
-				psci_system_reset();
-#endif
+				do_reset("TAMPER");
 		}
 		i++;
 	}
