@@ -210,6 +210,9 @@ endif
 CFG_DRIVERS_NVMEM ?= y
 CFG_STM32_TAMP_NVRAM ?= y
 
+# Default enable PKCS11 TA to have PKCS11 tests built in OP-TEE Test
+CFG_PKCS11_TA ?= y
+
 # Provisioning support for BSEC shadow memory, dedicated to insecure development
 # configuration only.
 CFG_STM32MP_PROVISIONING ?= y
