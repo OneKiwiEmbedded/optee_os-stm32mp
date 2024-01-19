@@ -64,6 +64,7 @@ $(call force,CFG_REGULATOR_DRIVERS,y)
 $(call force,CFG_REGULATOR_FIXED,y)
 $(call force,CFG_SCMI_PTA,y)
 $(call force,CFG_STM32_FIREWALL,y)
+$(call force,CFG_STM32_HSE_MONITORING,y)
 $(call force,CFG_STM32_REGULATOR_GPIO,y)
 $(call force,CFG_STM32MP_CLK_CORE,y)
 $(call force,CFG_STM32MP_REMOTEPROC,y)
@@ -150,6 +151,10 @@ ifeq ($(call cfg-one-enabled, CFG_STM32_CRYP \
 			      CFG_STM32_PKA \
 			      CFG_STM32_SAES ),y)
 $(call force,CFG_STM32_CRYPTO_DRIVER,y)
+endif
+
+ifeq ($(CFG_STM32_HSE_MONITORING),y)
+$(call force,CFG_STM32_LPTIMER,y)
 endif
 
 CFG_STM32MP_REMOTEPROC ?= n
