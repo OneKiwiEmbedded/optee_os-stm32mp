@@ -57,6 +57,10 @@
 	status = "okay";
 };
 
+&hse_monitor {
+	status = "okay";
+};
+
 &hsi_calibration {
 	status = "okay";
 };
@@ -321,6 +325,14 @@
 &iwdg1 {
 	timeout-sec = <32>;
 	status = "okay";
+};
+
+&lptimer1 {
+	status = "okay";
+
+	counter {
+		status = "okay";
+	};
 };
 
 &m33_rproc {
