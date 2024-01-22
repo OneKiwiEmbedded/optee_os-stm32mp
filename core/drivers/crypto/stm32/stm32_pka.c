@@ -1145,13 +1145,14 @@ static TEE_Result stm32_pka_ecdsa_verif_ret(const vaddr_t base)
 	return TEE_ERROR_BAD_PARAMETERS;
 }
 
-TEE_Result stm32_pka_ecdsa_verif(const void *hash, const unsigned int hash_size,
+TEE_Result stm32_pka_ecdsa_verif(const void *hash, unsigned int hash_size,
 				 const struct stm32_pka_bn *sig_r,
 				 const struct stm32_pka_bn *sig_s,
 				 const struct stm32_pka_point *pk,
 				 const enum stm32_pka_curve_id cid)
 {
 	TEE_Result res = TEE_SUCCESS;
+	uint32_t n_len_bytes = curve_def[cid].n_len / INT8_LEN;
 	vaddr_t base = io_pa_or_va(&pka_pdata.pa_or_va, 1);
 	unsigned int eo_nbw = get_ecc_op_nbword(cid);
 
@@ -1190,6 +1191,14 @@ TEE_Result stm32_pka_ecdsa_verif(const void *hash, const unsigned int hash_size,
 		goto out;
 
 	/*    With hash */
+	if (n_len_bytes < hash_size) {
+		/*
+		 * Hash size is greater than ECDSA prime curve size.
+		 * Truncate hash and use leftmost bits of the hash.
+		 * NIST.FIPS.186-5.pdf
+		 */
+		hash_size = n_len_bytes;
+	}
 	res = write_eo_data(base + _PKA_RAM_VERIF_HASH_Z, hash, hash_size,
 			    eo_nbw);
 	if (res)
@@ -1294,7 +1303,7 @@ static TEE_Result stm32_pka_ecdsa_sign_ret(const vaddr_t base,
 	return TEE_SUCCESS;
 }
 
-TEE_Result stm32_pka_ecdsa_sign(const void *hash, const unsigned int hash_size,
+TEE_Result stm32_pka_ecdsa_sign(const void *hash, unsigned int hash_size,
 				struct stm32_pka_bn *sig_r,
 				struct stm32_pka_bn *sig_s,
 				const struct stm32_pka_bn *d,
@@ -1302,6 +1311,7 @@ TEE_Result stm32_pka_ecdsa_sign(const void *hash, const unsigned int hash_size,
 				const enum stm32_pka_curve_id cid)
 {
 	TEE_Result res = TEE_SUCCESS;
+	uint32_t n_len_bytes = curve_def[cid].n_len / INT8_LEN;
 	vaddr_t base = io_pa_or_va(&pka_pdata.pa_or_va, 1);
 	unsigned int eo_nbw = get_ecc_op_nbword(cid);
 
@@ -1339,6 +1349,14 @@ TEE_Result stm32_pka_ecdsa_sign(const void *hash, const unsigned int hash_size,
 		goto out;
 
 	/*    With hash */
+	if (n_len_bytes < hash_size) {
+		/*
+		 * Hash size is greater than ECDSA prime curve size.
+		 * Truncate hash and use leftmost bits of the hash.
+		 * NIST.FIPS.186-4.pdf
+		 */
+		hash_size = n_len_bytes;
+	}
 	res = write_eo_data(base + _PKA_RAM_SIGN_HASH_Z, hash, hash_size,
 			    eo_nbw);
 	if (res)
