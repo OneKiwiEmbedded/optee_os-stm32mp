@@ -139,7 +139,6 @@
 				regulator-name = "vddgpu_pmic";
 				regulator-min-microvolt = <800000>;
 				regulator-max-microvolt = <900000>;
-				regulator-always-on;
 				regulator-over-current-protection;
 			};
 			vddio_pmic: buck4 {
