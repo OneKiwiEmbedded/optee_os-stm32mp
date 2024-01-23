@@ -282,8 +282,8 @@ static int respond(fwk_id_t service_id, const void *payload, size_t size)
      * specification it should be like that for all commands.
      */
     if ((payload != NULL) && (*((int32_t *)payload) < SCMI_SUCCESS)) {
-#if FWK_LOG_LEVEL <= FWK_LOG_LEVEL_ERROR
-        FWK_LOG_ERR(
+#if FWK_LOG_LEVEL <= FWK_LOG_LEVEL_DEBUG
+        FWK_LOG_DEBUG(
             "[SCMI] %s: %s [%" PRIu16 " (0x%x:0x%x)] returned error (%d)",
             service_name,
             message_type_name,
