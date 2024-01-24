@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2018-2021, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2018-2024, STMicroelectronics - All Rights Reserved
  * Copyright (c) 2017-2021, ARM Limited and Contributors. All rights reserved.
  */
 
@@ -43,8 +43,8 @@
  *
  * STANDBY_CONTEXT_MAGIC2:
  * Context provides MAGIC1 content, low power entry point, BL2 code start, end
- * and BL2_END (102 bytes). And, only for STM32MP13, add MCE master key
- * (16 bytes).
+ * and BL2_END (102 bytes). And, only for STM32MP13, add MCE master key seed
+ * (4 bytes).
  */
 #define STANDBY_CONTEXT_MAGIC0		(0x0001 << 16)
 #define STANDBY_CONTEXT_MAGIC1		(0x0002 << 16)
@@ -72,7 +72,7 @@
 #endif
 
 #if CFG_STM32MP1_PM_CONTEXT_VERSION >= 3 && defined(CFG_STM32MP13)
-#define MCE_KEY_SIZE_IN_BYTES		16
+#define MCE_SEED_SIZE_IN_BYTES		4
 #endif
 
 /*
@@ -126,7 +126,7 @@ struct pm_mailbox {
 	uint32_t bl2_code_end;
 	uint32_t bl2_end;
 #ifdef CFG_STM32MP13
-	uint8_t mce_mkey[MCE_KEY_SIZE_IN_BYTES];
+	uint8_t mce_seed[MCE_SEED_SIZE_IN_BYTES];
 #endif
 #endif
 };
