@@ -139,6 +139,7 @@ patternProperties:
 
     required:
       - compatible
+      - reg
 
 if:
   properties:
