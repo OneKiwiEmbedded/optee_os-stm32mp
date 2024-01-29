@@ -1284,13 +1284,12 @@ static int clk_stm32_parse_pll_fdt(const void *fdt, int subnode,
 	return 0;
 }
 
-#define RCC_PLL_NAME_SIZE 12
+#define RCC_PLL_NAME_SIZE 18
 
 static int stm32_clk_parse_fdt_all_pll(const void *fdt, int node,
 				       struct stm32_clk_platdata *pdata)
 {
-
-	size_t i = 0;
+	unsigned int i = 0;
 
 	for (i = 0; i < pdata->npll; i++) {
 		struct stm32_pll_dt_cfg *pll = pdata->pll + i;
@@ -1298,7 +1297,7 @@ static int stm32_clk_parse_fdt_all_pll(const void *fdt, int node,
 		int subnode = 0;
 		int err = 0;
 
-		snprintf(name, sizeof(name), "st,pll@%d", (int)i);
+		snprintf(name, sizeof(name), "st,pll-%u", i + 1);
 
 		subnode = fdt_subnode_offset(fdt, node, name);
 		if (subnode < 0)
