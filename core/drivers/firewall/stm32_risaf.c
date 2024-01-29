@@ -7,6 +7,7 @@
 #include <drivers/clk.h>
 #include <drivers/clk_dt.h>
 #include <drivers/stm32_risaf.h>
+#include <dt-bindings/soc/stm32mp25-rif.h>
 #include <dt-bindings/soc/stm32mp25-risaf.h>
 #include <io.h>
 #include <kernel/boot.h>
@@ -355,6 +356,88 @@ static TEE_Result risaf_configure_region(struct stm32_risaf_instance *risaf,
 	     io_read32(base + _RISAF_REG_CIDCFGR(region_id)));
 
 	return TEE_SUCCESS;
+}
+
+TEE_Result stm32_risaf_reconfigure_region(uintptr_t addr, size_t len,
+					  void **conf)
+{
+	struct stm32_risaf_region *old_conf = NULL;
+	struct stm32_risaf_instance *risaf = NULL;
+	struct stm32_risaf_region new_conf = { };
+	TEE_Result res = TEE_ERROR_GENERIC;
+	bool keep_old_conf = false;
+	unsigned int i = 0;
+
+	assert(conf);
+
+	if (!*conf) {
+		keep_old_conf = true;
+		old_conf = calloc(1, sizeof(*old_conf));
+		if (!old_conf)
+			return TEE_ERROR_OUT_OF_MEMORY;
+
+		new_conf.cfg = SHIFT_U32(RIF_CID1_BF, DT_RISAF_WRITE_SHIFT) |
+			       SHIFT_U32(RIF_CID1_BF, DT_RISAF_READ_SHIFT) |
+			       SHIFT_U32(RIF_CID1_BF, DT_RISAF_PRIV_SHIFT) |
+			       SHIFT_U32(RIF_SEC, DT_RISAF_SEC_SHIFT) |
+			       SHIFT_U32(RIF_CFEN, DT_RISAF_EN_SHIFT);
+	} else {
+		new_conf = **(struct stm32_risaf_region **)conf;
+	}
+
+	SLIST_FOREACH(risaf, &risaf_list, link) {
+		if (!core_is_buffer_inside(addr, len, risaf->pdata.mem_base,
+					   risaf->pdata.mem_size))
+			continue;
+
+		for (i = 0; i < risaf->pdata.nregions; i++) {
+			struct stm32_risaf_region *region = NULL;
+			uint32_t cfg = 0;
+			uint32_t cid_cfg = 0;
+
+			if (risaf->pdata.regions[i].addr != addr ||
+			    risaf->pdata.regions[i].len != len)
+				continue;
+
+			region = &risaf->pdata.regions[i];
+
+			if (keep_old_conf)
+				memcpy(old_conf, region, sizeof(*old_conf));
+
+			if (region->cfg & DT_RISAF_ENC_MASK)
+				new_conf.cfg |= region->cfg & DT_RISAF_ENC_MASK;
+
+			region->cfg = new_conf.cfg;
+
+			cfg = _RISAF_GET_REGION_CFG(region->cfg);
+			cid_cfg = _RISAF_GET_REGION_CID_CFG(region->cfg);
+
+			res = clk_enable(risaf->pdata.clock);
+			if (res) {
+				free(old_conf);
+				return res;
+			}
+
+			res = risaf_configure_region(risaf, i + 1, cfg, cid_cfg,
+						     addr, addr + len - U(1));
+			clk_disable(risaf->pdata.clock);
+			if (res) {
+				free(old_conf);
+				return res;
+			}
+
+			if (keep_old_conf) {
+				*conf = old_conf;
+			} else {
+				free(*conf);
+				*conf = NULL;
+			}
+
+			return TEE_SUCCESS;
+		}
+	}
+
+	return TEE_ERROR_ITEM_NOT_FOUND;
 }
 
 static void
