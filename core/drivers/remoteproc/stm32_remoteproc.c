@@ -605,6 +605,16 @@ err:
 	return res;
 }
 
+TEE_Result stm32_rproc_reset_grant_access(uint32_t rproc_id)
+{
+	struct stm32_rproc_instance *rproc = stm32_rproc_get(rproc_id);
+
+	if (rproc && !rproc->cdata->ns_loading)
+		return TEE_ERROR_ACCESS_DENIED;
+
+	return TEE_SUCCESS;
+}
+
 static const struct stm32_rproc_compat_data stm32_rproc_m4_tee_compat = {
 	.rproc_id = STM32MP1_M4_RPROC_ID,
 	.ns_loading = false,
