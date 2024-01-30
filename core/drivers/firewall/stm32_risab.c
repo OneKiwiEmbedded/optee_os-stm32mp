@@ -14,6 +14,7 @@
 #include <kernel/boot.h>
 #include <kernel/dt.h>
 #include <kernel/pm.h>
+#include <kernel/tee_misc.h>
 #include <libfdt.h>
 #include <mm/core_memprot.h>
 #include <platform_config.h>
@@ -485,6 +486,152 @@ static void set_vderam_syscfg(struct stm32_risab_pdata *risab_d)
 				     VDERAMCR_MASK);
 	else
 		stm32mp_syscfg_write(SYSCFG_VDERAMCR, 0, VDERAMCR_MASK);
+}
+
+TEE_Result stm32_risab_reconfigure_region(uintptr_t reg_base, size_t reg_len,
+					  void **conf)
+{
+	struct stm32_risab_rif_conf new_conf = { };
+	struct stm32_risab_rif_conf *old_conf = NULL;
+	struct stm32_risab_pdata *risab = NULL;
+	unsigned int first_page = 0;
+	unsigned int last_page = 0;
+	uintptr_t region_offset = 0;
+	bool keep_old_conf = false;
+	unsigned int i = 0;
+	unsigned int j = 0;
+
+	assert(conf);
+
+	if (!*conf) {
+		keep_old_conf = true;
+		old_conf = calloc(1, sizeof(*old_conf));
+		if (!old_conf)
+			return TEE_ERROR_OUT_OF_MEMORY;
+
+		new_conf.seccfgr = GENMASK_32(7, 0);
+		new_conf.dprivcfgr = GENMASK_32(7, 0);
+		new_conf.plist[0] = RIF_CID1_BF;
+		new_conf.rlist[0] = RIF_CID1_BF;
+		new_conf.wlist[0] = RIF_CID1_BF;
+		new_conf.cidcfgr = 0x1;
+	} else {
+		new_conf = **(struct stm32_risab_rif_conf **)conf;
+	}
+
+	assert(((new_conf.cidcfgr & _RISAB_PG_CIDCFGR_DDCID_MASK) <<
+		_RISAB_PG_CIDCFGR_DDCID_SHIFT) < RISAB_NB_MAX_CID_SUPPORTED);
+
+	SLIST_FOREACH(risab, &risab_list, link) {
+		if (!core_is_buffer_inside(reg_base, reg_len,
+					   risab->region_cfged.base,
+					   risab->region_cfged.size))
+			continue;
+
+		region_offset = reg_base - risab->region_cfged.base;
+		first_page = region_offset / _RISAB_PAGE_SIZE;
+		last_page = (reg_len / _RISAB_PAGE_SIZE) + first_page - 1;
+
+		for (i = 0; i < risab->nb_regions_cfged; i++) {
+			/* Make sure the reconfigured zone is identified */
+			if (first_page == risab->subr_cfg[i].first_page &&
+			    last_page == risab->subr_cfg[i].first_page +
+			    risab->subr_cfg[i].nb_pages_cfged - 1)
+				goto found;
+		};
+	};
+
+	free(old_conf);
+
+	return TEE_ERROR_ITEM_NOT_FOUND;
+
+found:
+	if (clk_enable(risab->clock))
+		panic();
+
+	for (j = risab->subr_cfg[i].first_page;
+	     j <= risab->subr_cfg[i].first_page +
+	     risab->subr_cfg[i].nb_pages_cfged;
+	     j++) {
+		/* If TDCID, clear the CID configuration to access registers */
+		if (is_tdcid)
+			io_clrsetbits32(risab->base + _RISAB_PGy_CIDCFGR(j),
+					_RISAB_PG_CIDCFGR_CONF_MASK, 0);
+
+		if (!regs_access_granted(risab, i)) {
+			EMSG("Memory %#lx-%#zx cannot be reconfigured",
+			     reg_base, reg_len);
+
+			free(old_conf);
+
+			return TEE_ERROR_ACCESS_DENIED;
+		}
+	}
+	clk_disable(risab->clock);
+
+	if (keep_old_conf)
+		memcpy(old_conf, &risab->subr_cfg[i], sizeof(*old_conf));
+
+	/* Secure configuration */
+	risab->subr_cfg[i].seccfgr = new_conf.seccfgr;
+
+	/* Default privilege configuration */
+	risab->subr_cfg[i].dprivcfgr = new_conf.dprivcfgr;
+
+	for (j = 0; j < RISAB_NB_MAX_CID_SUPPORTED; j++) {
+		risab->subr_cfg[i].plist[j] = 0;
+		risab->subr_cfg[i].rlist[j] = 0;
+		risab->subr_cfg[i].wlist[j] = 0;
+
+		/* RISAB compartment priv configuration */
+		if (new_conf.plist[0] & BIT(j)) {
+			risab->subr_cfg[i].plist[j] |=
+			GENMASK_32(first_page +
+				   risab->subr_cfg[i].nb_pages_cfged - 1,
+				   first_page);
+		}
+
+		/* RISAB compartment read configuration */
+		if (new_conf.rlist[0] & BIT(j)) {
+			risab->subr_cfg[i].rlist[j] |=
+			GENMASK_32(first_page +
+				   risab->subr_cfg[i].nb_pages_cfged - 1,
+				   first_page);
+		}
+
+		/* RISAB compartment write configuration */
+		if (new_conf.wlist[0] & BIT(j)) {
+			risab->subr_cfg[i].wlist[j] |=
+			GENMASK_32(first_page +
+				   risab->subr_cfg[i].nb_pages_cfged - 1,
+				   first_page);
+		}
+	}
+
+	/* CID filtering configuration */
+	risab->subr_cfg[i].cidcfgr = 0;
+	if (new_conf.cidcfgr & _RISAB_PG_CIDCFGR_CFEN)
+		risab->subr_cfg[i].cidcfgr |= _RISAB_PG_CIDCFGR_CFEN;
+
+	if (new_conf.cidcfgr & _RISAB_PG_CIDCFGR_DCEN)
+		risab->subr_cfg[i].cidcfgr |= _RISAB_PG_CIDCFGR_DCEN;
+
+	risab->subr_cfg[i].cidcfgr |= new_conf.cidcfgr &
+				      (_RISAB_PG_CIDCFGR_DDCID_MASK |
+				       _RISAB_PG_CIDCFGR_CFEN |
+				       _RISAB_PG_CIDCFGR_DCEN);
+
+	apply_rif_config(risab);
+
+	/* Save old configuration */
+	if (keep_old_conf) {
+		*conf = old_conf;
+	} else {
+		free(*conf);
+		*conf = NULL;
+	}
+
+	return TEE_SUCCESS;
 }
 
 static TEE_Result stm32_risab_pm_resume(struct stm32_risab_pdata *risab)
