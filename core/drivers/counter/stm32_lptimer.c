@@ -219,8 +219,10 @@ static TEE_Result stm32_lpt_counter_cancel_alarm(struct counter_device *counter)
 	return TEE_SUCCESS;
 }
 
-static int _stm32_lpt_counter_get_value(struct lptimer_device *lpt_dev)
+static TEE_Result _stm32_lpt_counter_get_value(struct lptimer_device *lpt_dev,
+					       uint32_t *ticks)
 {
+	uint64_t timeout = timeout_init_us(TIMEOUT_US_100MS);
 	uintptr_t base = lpt_dev->pdata.base;
 	uint32_t cnt = 0;
 	uint32_t cnt_prev = 0;
@@ -233,9 +235,13 @@ static int _stm32_lpt_counter_get_value(struct lptimer_device *lpt_dev)
 	do {
 		cnt_prev = cnt;
 		cnt = io_read32(base + _LPTIM_CNT);
+		if (timeout_elapsed(timeout))
+			return TEE_ERROR_GENERIC;
 	} while (cnt_prev != cnt);
 
-	return cnt;
+	*ticks = cnt;
+
+	return TEE_SUCCESS;
 }
 
 static TEE_Result stm32_lpt_counter_get_value(struct counter_device *counter,
@@ -246,8 +252,7 @@ static TEE_Result stm32_lpt_counter_get_value(struct counter_device *counter,
 	if (!ticks)
 		return TEE_ERROR_BAD_PARAMETERS;
 
-	*ticks = _stm32_lpt_counter_get_value(lpt_dev);
-	return TEE_SUCCESS;
+	return _stm32_lpt_counter_get_value(lpt_dev, ticks);
 }
 
 static TEE_Result stm32_lpt_counter_stop(struct counter_device *counter)
@@ -420,8 +425,11 @@ static enum itr_return stm32_lptimer_itr(struct itr_handler *h)
 	isr = io_read32(base + _LPTIM_ISR);
 
 	if (isr & _LPTIM_IXX_CMPM) {
-		uint32_t ticks = _stm32_lpt_counter_get_value(lpt_dev);
+		uint32_t ticks = 0;
 		void *priv = lpt_dev->counter_dev->alarm.priv;
+
+		if (_stm32_lpt_counter_get_value(lpt_dev, &ticks))
+			EMSG("Failed to get counter value");
 
 		lpt_dev->counter_dev->alarm.callback(ticks, priv);
 	}
