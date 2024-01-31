@@ -13,6 +13,7 @@
 #include <drivers/scmi.h>
 #include <drivers/stm32_cpu_opp.h>
 #include <drivers/stm32_firewall.h>
+#include <drivers/stm32_remoteproc.h>
 #include <drivers/stm32mp_dt_bindings.h>
 #include <initcall.h>
 #include <mm/core_memprot.h>
@@ -362,6 +363,8 @@ static TEE_Result plat_scmi_reset_assert_level(struct rstctrl *rstctrl,
 	};
 	int index = rstctrl - plat_resets;
 	paddr_t domain_iobase = 0;
+	unsigned long reset_id = 0;
+	TEE_Result res = TEE_ERROR_GENERIC;
 
 	assert(index >= 0 && (size_t)index < ARRAY_SIZE(stm32_scmi_reset));
 	domain_iobase = stm32_scmi_reset[index].base;
@@ -369,6 +372,14 @@ static TEE_Result plat_scmi_reset_assert_level(struct rstctrl *rstctrl,
 	if (domain_iobase &&
 	    stm32_firewall_check_access(domain_iobase, 0, nsec_cfg))
 		return TEE_ERROR_ACCESS_DENIED;
+
+	reset_id = stm32_scmi_reset[index].reset_id;
+
+	if (reset_id == C2_R || reset_id == HOLD_BOOT_C2_R) {
+		res = stm32_rproc_reset_grant_access(STM32MP2_M33_RPROC_ID);
+		if (res)
+			return res;
+	}
 
 	return rstctrl_assert_to(stm32_scmi_reset[index].rstctrl_be, to_us);
 }
@@ -382,6 +393,8 @@ static TEE_Result plat_scmi_reset_deassert_level(struct rstctrl *rstctrl,
 	};
 	int index = rstctrl - plat_resets;
 	paddr_t domain_iobase = 0;
+	unsigned long reset_id = 0;
+	TEE_Result res = TEE_ERROR_GENERIC;
 
 	assert(index >= 0 && (size_t)index < ARRAY_SIZE(stm32_scmi_reset));
 	domain_iobase = stm32_scmi_reset[index].base;
@@ -389,6 +402,14 @@ static TEE_Result plat_scmi_reset_deassert_level(struct rstctrl *rstctrl,
 	if (domain_iobase &&
 	    stm32_firewall_check_access(domain_iobase, 0, nsec_cfg))
 		return TEE_ERROR_ACCESS_DENIED;
+
+	reset_id = stm32_scmi_reset[index].reset_id;
+
+	if (reset_id == C2_R || reset_id == HOLD_BOOT_C2_R) {
+		res = stm32_rproc_reset_grant_access(STM32MP2_M33_RPROC_ID);
+		if (res)
+			return res;
+	}
 
 	return rstctrl_deassert_to(stm32_scmi_reset[index].rstctrl_be, to_us);
 }
