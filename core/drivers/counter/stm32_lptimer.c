@@ -292,27 +292,26 @@ static TEE_Result stm32_lpt_counter_start(struct counter_device *counter,
 	struct stm32_lptimer_platdata *pdata = &lpt_dev->pdata;
 	struct stm32_lptimer_config *conf =
 		(struct stm32_lptimer_config *)config;
-	struct lptimer_ext_input_cfg *ext_input = &conf->ext_input;
-	struct lptimer_ext_trigger_cfg *ext_trigger = &conf->ext_trigger;
 	uintptr_t base = pdata->base;
 	TEE_Result res = TEE_ERROR_GENERIC;
 	uint32_t cfgr = 0;
 	uint32_t cfgr2 = 0;
 
-	if (ext_input->num) {
+	if (conf && conf->ext_input.num) {
 		cfgr += _LPTIM_CFGR_COUNTMODE;
 
 		cfgr2 += _LPTIM_FLD_PREP(_LPTIM_CFGR2_IN1SEL,
-					 ext_input->mux[0]);
-		if (ext_input->num == 2)
+					 conf->ext_input.mux[0]);
+		if (conf->ext_input.num == 2)
 			cfgr2 += _LPTIM_FLD_PREP(_LPTIM_CFGR2_IN2SEL,
-						 ext_input->mux[1]);
+						 conf->ext_input.mux[1]);
 	}
 
-	if (ext_trigger->num) {
-		cfgr += _LPTIM_FLD_PREP(_LPTIM_CFGR_TRIGSEL, ext_trigger->mux);
+	if (conf && conf->ext_trigger.num) {
+		cfgr += _LPTIM_FLD_PREP(_LPTIM_CFGR_TRIGSEL,
+					conf->ext_trigger.mux);
 		cfgr += _LPTIM_FLD_PREP(_LPTIM_CFGR_TRIGEN,
-					ext_trigger->polarity);
+					conf->ext_trigger.polarity);
 		cfgr |= _LPTIM_CFGR_TIMOUT;
 	}
 
