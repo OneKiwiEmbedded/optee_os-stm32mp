@@ -23,6 +23,7 @@
 #include <kernel/interrupt.h>
 #include <kernel/misc.h>
 #include <kernel/spinlock.h>
+#include <libfdt.h>
 #include <mm/core_memprot.h>
 #include <platform_config.h>
 #include <stm32_util.h>
@@ -207,6 +208,38 @@ void stm32_rif_access_violation_action(void)
 #endif
 }
 #endif /* CFG_STM32_RIF */
+
+TEE_Result stm32_rif_reconfigure_mem_region(const void *fdt, int phandle,
+					    void **config)
+{
+	int node = fdt_node_offset_by_phandle(fdt, phandle);
+	TEE_Result res = TEE_ERROR_GENERIC;
+	paddr_t reg_base = 0;
+	size_t reg_size = 0;
+
+	if (node < 0) {
+		EMSG("Could not get node offset for mem region, res=%d", node);
+		return TEE_ERROR_GENERIC;
+	}
+
+	reg_base = _fdt_reg_base_address(fdt, node);
+	reg_size = _fdt_reg_size(fdt, node);
+	if (reg_base == DT_INFO_INVALID_REG ||
+	    reg_size == DT_INFO_INVALID_REG_SIZE)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	/* Only allow RISAF4 and RISABx reconfigurations */
+	if (reg_base >= 0xa000000 && reg_base < 0xa0c0000)
+		res = stm32_risab_reconfigure_region(reg_base, reg_size,
+						     config);
+	else if (reg_base >= CFG_DRAM_BASE)
+		res = stm32_risaf_reconfigure_region(reg_base, reg_size,
+						     config);
+	else
+		return TEE_ERROR_ACCESS_DENIED;
+
+	return res;
+}
 
 #ifdef CFG_STM32_BSEC3
 void plat_bsec_get_static_cfg(struct stm32_bsec_static_cfg *cfg)

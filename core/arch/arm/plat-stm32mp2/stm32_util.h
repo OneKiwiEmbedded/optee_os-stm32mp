@@ -32,4 +32,21 @@ bool stm32mp_supports_cpu_opp(uint32_t opp_id);
 
 void __noreturn do_reset(const char *str);
 
+/**
+ * stm32_rif_reconfigure_mem_region() - Allows to reconfigure a previously
+ *					configured memory region.
+ * @fdt:	Device tree file to work on
+ * @phandle:	Phandle of the memory region
+ * @config:	When @config points to a NULL reference, the function grants
+ *		access to OP-TEE  compartment and returns in @config a pointer
+ *		to the previously apply configuration, to be later used in a
+ *		call to the same API function.
+ *		When @config points to a non-NULL reference, that reference is
+ *		expected to be obtained from a previous call to this function
+ *		and contains the configuration to be applied. In such case, the
+ *		function set @config output value to a NULL reference.
+ */
+TEE_Result stm32_rif_reconfigure_mem_region(const void *fdt, int phandle,
+					    void **config);
+
 #endif /*__STM32_UTIL_H__*/
