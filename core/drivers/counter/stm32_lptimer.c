@@ -180,7 +180,7 @@ static TEE_Result stm32_lpt_counter_cancel_alarm(struct counter_device *counter)
 		 */
 		io_clrbits32(base + _LPTIM_CR, _LPTIM_CR_ENABLE);
 	}
-	io_clrbits32(base + _LPTIM_IER, _LPTIM_CR_ENABLE);
+	io_clrbits32(base + _LPTIM_IER, _LPTIM_IXX_CMPM);
 
 	/*
 	 * LPTIM_CMP & ARR registers must only be modified
