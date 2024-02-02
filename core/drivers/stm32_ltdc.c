@@ -10,6 +10,7 @@
 #include <drivers/stm32_etzpc.h>
 #include <drivers/stm32_firewall.h>
 #include <drivers/stm32_gpio.h>
+#include <drivers/stm32_rif.h>
 #include <drivers/stm32mp_dt_bindings.h>
 #include <io.h>
 #include <kernel/boot.h>
@@ -157,10 +158,12 @@ static TEE_Result stm32_ltdc_init(void *device)
 	struct ltdc_device *ldev = device;
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	uint32_t gcr = 0;
+#if defined(CFG_STM32MP13) || defined(CFG_STM32MP15)
 	const struct stm32_firewall_cfg sec_cfg[] = {
 		{ FWLL_SEC_RW | FWLL_NSEC_READ | FWLL_MASTER(0) },
 		{ }, /* Null terminated */
 	};
+#endif
 
 	ret = clk_enable(ldev->clock);
 	if (ret)
@@ -185,11 +188,25 @@ static TEE_Result stm32_ltdc_init(void *device)
 		}
 	}
 
+#if defined(CFG_STM32MP13) || defined(CFG_STM32MP15)
 	/* LTDC goes non-secure read, secure write */
 	ret = stm32_firewall_set_config(virt_to_phys((void *)ldev->regs),
 					0, sec_cfg);
 	if (ret)
 		goto err;
+#endif
+
+#if defined(CFG_STM32MP25)
+	ret = stm32_rifsc_reconfigure_risup(STM32MP25_RIFSC_LTDC_CMN_ID,
+					    RIF_CID1, true, true, true);
+	if (ret != TEE_SUCCESS)
+		goto err;
+
+	ret = stm32_rifsc_reconfigure_rimu(RIMU_ID(12), RIF_CID4,
+					   true, true, true);
+	if (ret != TEE_SUCCESS)
+		goto err;
+#endif
 
 	return ret;
 err:
@@ -203,13 +220,19 @@ static TEE_Result stm32_ltdc_final(void *device)
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	struct ltdc_device *ldev = device;
 	uint64_t timeout_ref = 0;
+#if defined(CFG_STM32MP13) || defined(CFG_STM32MP15)
 	const struct stm32_firewall_cfg sec_cfg[] = {
 		{ FWLL_NSEC_RW | FWLL_MASTER(0) },
 		{ }, /* Null terminated */
 	};
+#endif
 
 	if (!ldev->activate)
-		goto out;
+		goto set_firewall;
+
+	ret = clk_enable(ldev->clock);
+	if (ret)
+		panic("Cannot access LTDC clock");
 
 	/* Disable secure layer */
 	io_clrbits32(ldev->regs + LTDC_LXCR, LXCR_LEN);
@@ -235,19 +258,28 @@ static TEE_Result stm32_ltdc_final(void *device)
 	if (!ldev->end_of_frame)
 		EMSG("ltdc: Did not receive end of frame interrupt");
 
+	clk_disable(ldev->clock);
+
+set_firewall:
+#if defined(CFG_STM32MP13) || defined(CFG_STM32MP15)
 	ret = stm32_firewall_set_config(virt_to_phys((void *)ldev->regs),
 					0, sec_cfg);
 	if (ret)
 		goto out;
+#endif
 
-	if (ldev->pinctrl_list) {
-		ret = stm32_pinctrl_set_secure_cfg(ldev->pinctrl_list, false);
-		/* Restoring non-secure state for pins should not fail */
-		assert(ret == TEE_SUCCESS);
-	}
+#if defined(CFG_STM32MP25)
+	ret = stm32_rifsc_reconfigure_risup(STM32MP25_RIFSC_LTDC_CMN_ID,
+					    RIF_CID1, false, true, true);
+	if (ret != TEE_SUCCESS)
+		goto out;
+
+	ret = stm32_rifsc_reconfigure_rimu(RIMU_ID(12), RIF_CID4,
+					   true, false, false);
+	if (ret != TEE_SUCCESS)
+		goto out;
+#endif
 out:
-	clk_disable(ldev->clock);
-
 	ldev->activate = false;
 
 	return ret;
