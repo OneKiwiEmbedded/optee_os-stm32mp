@@ -37,6 +37,7 @@
 #define _LPTIM_IXX_ARROK	BIT(4)
 #define _LPTIM_IXX_UP		BIT(5)
 #define _LPTIM_IXX_DOWN		BIT(6)
+#define _LPTIM_CMPARR_OK	(_LPTIM_IXX_CMPOK | _LPTIM_IXX_ARROK)
 
 /* LPTIM_CFGR register fields */
 #define _LPTIM_CFGR_CKSEL		BIT(0)
@@ -112,6 +113,8 @@
 #define LPTIM_ERR_INVAL		22	/* Invalid argument */
 #define LPTIM_ERR_NOTSUP	45	/* Operation not supported */
 
+#define TIMEOUT_US_100MS	U(100000)
+
 struct lptimer_compat_data {
 	bool ier_wr_disabled;		/* disable lptimer to set dier */
 };
@@ -136,6 +139,7 @@ static TEE_Result stm32_lpt_counter_set_alarm(struct counter_device *counter)
 	struct lptimer_device *lpt_dev = counter_priv(counter);
 	uintptr_t base = lpt_dev->pdata.base;
 	uint32_t cr = 0;
+	uint32_t val = 0;
 
 	/* ARR must be strictly greater than the CMP, within max_ticks range */
 	if (counter->alarm.ticks >= counter->max_ticks)
@@ -149,6 +153,15 @@ static TEE_Result stm32_lpt_counter_set_alarm(struct counter_device *counter)
 	io_setbits32(base + _LPTIM_CR, _LPTIM_CR_ENABLE);
 	io_write32(base + _LPTIM_ARR, counter->alarm.ticks + 1);
 	io_write32(base + _LPTIM_CMP, counter->alarm.ticks);
+
+	/* Enforce CMP and ARR are correctly set, then clear these flags */
+	if (IO_READ32_POLL_TIMEOUT(base + _LPTIM_ISR, val,
+				   (val & _LPTIM_CMPARR_OK) == _LPTIM_CMPARR_OK,
+				   0, TIMEOUT_US_100MS)) {
+		io_write32(base + _LPTIM_CR, cr);
+		return TEE_ERROR_GENERIC;
+	}
+	io_write32(base + _LPTIM_ICR, _LPTIM_CMPARR_OK);
 
 	if (lpt_dev->cdata && lpt_dev->cdata->ier_wr_disabled) {
 		/*
