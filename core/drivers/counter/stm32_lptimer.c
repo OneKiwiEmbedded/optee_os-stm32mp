@@ -138,12 +138,17 @@ static TEE_Result stm32_lpt_counter_set_alarm(struct counter_device *counter)
 {
 	struct lptimer_device *lpt_dev = counter_priv(counter);
 	uintptr_t base = lpt_dev->pdata.base;
+	TEE_Result res = TEE_ERROR_GENERIC;
 	uint32_t cr = 0;
 	uint32_t val = 0;
 
 	/* ARR must be strictly greater than the CMP, within max_ticks range */
 	if (counter->alarm.ticks >= counter->max_ticks)
 		return TEE_ERROR_GENERIC;
+
+	res = clk_enable(lpt_dev->pdata.clock);
+	if (res)
+		return res;
 
 	cr = io_read32(base + _LPTIM_CR);
 	/*
@@ -159,6 +164,7 @@ static TEE_Result stm32_lpt_counter_set_alarm(struct counter_device *counter)
 				   (val & _LPTIM_CMPARR_OK) == _LPTIM_CMPARR_OK,
 				   0, TIMEOUT_US_100MS)) {
 		io_write32(base + _LPTIM_CR, cr);
+		clk_disable(lpt_dev->pdata.clock);
 		return TEE_ERROR_GENERIC;
 	}
 	io_write32(base + _LPTIM_ICR, _LPTIM_CMPARR_OK);
@@ -183,6 +189,8 @@ static TEE_Result stm32_lpt_counter_set_alarm(struct counter_device *counter)
 	if (cr & _LPTIM_CR_ENABLE)
 		io_write32(base + _LPTIM_CR,
 			   _LPTIM_CR_ENABLE | _LPTIM_CR_CNTSTRT);
+
+	clk_disable(lpt_dev->pdata.clock);
 
 	return TEE_SUCCESS;
 }
