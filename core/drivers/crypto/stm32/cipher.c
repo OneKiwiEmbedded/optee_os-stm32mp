@@ -87,6 +87,11 @@ static TEE_Result cryp_update(union ip_ctx *ip_ctx __unused,
 #endif
 }
 
+static const struct ip_cipher_ops cryp_ops = {
+	.init = cryp_init,
+	.update = cryp_update,
+};
+
 static TEE_Result saes_init(union ip_ctx *ip_ctx __unused,
 			    bool is_decrypt __unused,
 			    const uint8_t *key __unused,
@@ -115,12 +120,7 @@ static TEE_Result saes_update(union ip_ctx *ip_ctx __unused,
 #endif
 }
 
-const struct ip_cipher_ops cryp_ops = {
-	.init = cryp_init,
-	.update = cryp_update,
-};
-
-const struct ip_cipher_ops saes_ops = {
+static const struct ip_cipher_ops saes_ops = {
 	.init = saes_init,
 	.update = saes_update,
 };
