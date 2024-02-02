@@ -30,8 +30,6 @@
 #define AES_BLOCK_SIZE			(AES_BLOCK_SIZE_BIT / INT8_BIT)
 #define AES_BLOCK_NB_U32		(AES_BLOCK_SIZE / sizeof(uint32_t))
 
-#define AES_KEYSIZE_128			16U
-#define AES_KEYSIZE_256			32U
 #define AES_IVSIZE			16U
 
 /* SAES control register */

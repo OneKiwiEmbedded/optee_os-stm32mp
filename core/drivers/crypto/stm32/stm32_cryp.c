@@ -35,9 +35,6 @@
 #define MAX_BLOCK_SIZE_BIT		AES_BLOCK_SIZE_BIT
 #define MAX_BLOCK_SIZE			AES_BLOCK_SIZE
 #define MAX_BLOCK_NB_U32		AES_BLOCK_NB_U32
-#define AES_KEYSIZE_128			16U
-#define AES_KEYSIZE_192			24U
-#define AES_KEYSIZE_256			32U
 
 /* CRYP control register */
 #define _CRYP_CR			0x0U

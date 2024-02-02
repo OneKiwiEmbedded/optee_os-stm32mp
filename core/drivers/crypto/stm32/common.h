@@ -8,6 +8,10 @@
 
 #include <tee_api_types.h>
 
+#define AES_KEYSIZE_128			U(16)
+#define AES_KEYSIZE_192			U(24)
+#define AES_KEYSIZE_256			U(32)
+
 enum cipher_ip_id {
 	CRYP_IP,
 	SAES_IP,
