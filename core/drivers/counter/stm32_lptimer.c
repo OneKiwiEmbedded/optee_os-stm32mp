@@ -162,6 +162,11 @@ static TEE_Result stm32_lpt_counter_set_alarm(struct counter_device *counter)
 
 	counter->alarm.is_enabled = true;
 
+	/* restart timer if it was enabled before setting the alarm */
+	if (cr & _LPTIM_CR_ENABLE)
+		io_write32(base + _LPTIM_CR,
+			   _LPTIM_CR_ENABLE | _LPTIM_CR_CNTSTRT);
+
 	return TEE_SUCCESS;
 }
 
