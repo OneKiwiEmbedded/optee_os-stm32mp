@@ -527,15 +527,6 @@ bool stm32mp_supports_cpu_opp(uint32_t opp_id)
 		panic();
 	}
 
-	switch (opp_id) {
-	case PLAT_OPP_ID1:
-	case PLAT_OPP_ID2:
-		id = opp_id;
-		break;
-	default:
-		return false;
-	}
-
 	switch (part_number) {
 #ifdef CFG_STM32MP13
 	case STM32MP135F_PART_NB:
@@ -553,10 +544,14 @@ bool stm32mp_supports_cpu_opp(uint32_t opp_id)
 	case STM32MP151F_PART_NB:
 	case STM32MP151D_PART_NB:
 #endif
-		return true;
+		id = BIT(1);
+		break;
 	default:
-		return id == PLAT_OPP_ID1;
+		id = BIT(0);
+		break;
 	}
+
+	return (opp_id & id) == id;
 }
 
 bool stm32mp_supports_hw_cryp(void)

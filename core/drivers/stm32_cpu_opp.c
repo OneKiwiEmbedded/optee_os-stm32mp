@@ -527,7 +527,7 @@ static TEE_Result stm32_cpu_opp_is_supported(const void *fdt, int subnode)
 
 	opp = fdt32_to_cpu(*cuint32);
 	if (!stm32mp_supports_cpu_opp(opp)) {
-		EMSG("Invalid opp-supported-hw %#"PRIx32, opp);
+		DMSG("Not supported opp-supported-hw %#"PRIx32, opp);
 		return TEE_ERROR_GENERIC;
 	}
 
