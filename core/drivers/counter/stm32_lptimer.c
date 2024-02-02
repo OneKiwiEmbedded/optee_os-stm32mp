@@ -586,12 +586,10 @@ static TEE_Result stm32_lptimer_probe(const void *fdt, int node,
 	if (!lpt_dev)
 		return TEE_ERROR_OUT_OF_MEMORY;
 
-	if (lpt_dev) {
-		lpt_dev->fdt = fdt;
-		lpt_dev->node = node;
-		lpt_dev->cdata = compat_data;
-		res = probe_lpt_device(lpt_dev);
-	}
+	lpt_dev->fdt = fdt;
+	lpt_dev->node = node;
+	lpt_dev->cdata = compat_data;
+	res = probe_lpt_device(lpt_dev);
 
 	if (res)
 		stm32_lptimer_free(lpt_dev);
