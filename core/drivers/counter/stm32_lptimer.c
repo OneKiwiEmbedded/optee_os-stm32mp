@@ -256,11 +256,20 @@ static TEE_Result stm32_lpt_counter_get_value(struct counter_device *counter,
 					      uint32_t *ticks)
 {
 	struct lptimer_device *lpt_dev = counter_priv(counter);
+	TEE_Result res = TEE_ERROR_GENERIC;
 
 	if (!ticks)
 		return TEE_ERROR_BAD_PARAMETERS;
 
-	return _stm32_lpt_counter_get_value(lpt_dev, ticks);
+	res = clk_enable(lpt_dev->pdata.clock);
+	if (res)
+		return res;
+
+	res = _stm32_lpt_counter_get_value(lpt_dev, ticks);
+
+	clk_disable(lpt_dev->pdata.clock);
+
+	return res;
 }
 
 static TEE_Result stm32_lpt_counter_stop(struct counter_device *counter)
