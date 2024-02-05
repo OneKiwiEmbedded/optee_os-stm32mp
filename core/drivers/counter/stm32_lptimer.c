@@ -562,6 +562,8 @@ static TEE_Result probe_lpt_device(struct lptimer_device *lpt_dev)
 	if (!lpt_dev->itr)
 		return TEE_ERROR_OUT_OF_MEMORY;
 
+	itr_enable(lpt_dev->itr->it);
+
 	if (lpt_dev->pdata.mode & LPTIMER_MODE_COUNTER) {
 		lpt_dev->counter_dev = counter_dev_alloc();
 		lpt_dev->counter_dev->ops = &stm32_lpt_counter_ops;
