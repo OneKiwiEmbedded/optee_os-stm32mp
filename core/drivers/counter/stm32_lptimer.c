@@ -395,6 +395,10 @@ static enum itr_return stm32_lptimer_itr(struct itr_handler *h)
 	uintptr_t base = lpt_dev->pdata.base;
 	uint32_t isr = 0;
 
+	/* counter may get stopped from the callback, keep the clock */
+	if (clk_enable(lpt_dev->pdata.clock))
+		panic();
+
 	isr = io_read32(base + _LPTIM_ISR);
 
 	if (isr & _LPTIM_IXX_CMPM) {
@@ -405,6 +409,8 @@ static enum itr_return stm32_lptimer_itr(struct itr_handler *h)
 	}
 
 	io_write32(base + _LPTIM_ICR, isr);
+
+	clk_disable(lpt_dev->pdata.clock);
 
 	return ITRR_HANDLED;
 }
