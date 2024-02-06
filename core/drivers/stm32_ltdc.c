@@ -62,6 +62,7 @@ struct ltdc_device {
 #define ISR_FURIF	BIT(8)		/* Fifo Underrun at Rotation Interrupt Flag */
 
 #define ID_HWVER_40100		0x040100
+#define ID_HWVER_40101		0x040101
 #define GCR_LTDCEN		BIT(0)
 #define LTDC_BPCR_AHBP		GENMASK_32(27, 16)
 #define LTDC_BPCR_AVBP		GENMASK_32(10, 0)
@@ -444,7 +445,7 @@ static TEE_Result stm32_ltdc_probe(const void *fdt, int node,
 
 	hwid = io_read32(ldev->regs + LTDC_IDR);
 
-	if (hwid != ID_HWVER_40100) {
+	if (hwid != ID_HWVER_40100 && hwid != ID_HWVER_40101) {
 		EMSG("LTDC hardware version not supported: 0x%x", hwid);
 		res = TEE_ERROR_NOT_SUPPORTED;
 		goto err2;
