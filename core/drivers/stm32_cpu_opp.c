@@ -100,6 +100,19 @@ static TEE_Result opp_set_voltage(struct rdev *rdev, uint16_t volt_mv)
 	return regulator_set_voltage(rdev, volt_mv);
 }
 
+static bool opp_voltage_is_supported(struct rdev *rdev, uint16_t volt_mv)
+{
+	uint16_t min_mv = 0;
+	uint16_t max_mv = 0;
+
+	regulator_get_range(rdev, &min_mv, &max_mv);
+
+	if (volt_mv < min_mv || volt_mv > max_mv)
+		return false;
+
+	return true;
+}
+
 static TEE_Result set_clock_then_voltage(unsigned int opp)
 {
 	TEE_Result res = TEE_ERROR_GENERIC;
@@ -578,6 +591,14 @@ static TEE_Result stm32_cpu_opp_get_dt_subnode(const void *fdt, int node)
 		}
 
 		volt_mv = fdt32_to_cpu(*cuint32) / 1000U;
+
+		/* skip OPP when voltage is not supported */
+		if (!opp_voltage_is_supported(cpu_opp.rdev, volt_mv)) {
+			DMSG("Skip OPP %"PRIu64"kHz/%"PRIu32"mV",
+			     freq_khz, volt_mv);
+			cpu_opp.opp_count--;
+			continue;
+		}
 
 		cpu_opp.dvfs[i].freq_khz = freq_khz;
 		cpu_opp.dvfs[i].volt_mv = volt_mv;
