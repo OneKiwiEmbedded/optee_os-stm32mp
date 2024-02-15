@@ -777,6 +777,36 @@ static void remoteproc_clean_resources(struct remoteproc_context *ctx)
 	assert(!res);
 }
 
+static TEE_Result remoteproc_get_mems(struct remoteproc_context *ctx)
+{
+	uint32_t param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_VALUE_INPUT,
+					       TEE_PARAM_TYPE_NONE,
+					       TEE_PARAM_TYPE_NONE,
+					       TEE_PARAM_TYPE_NONE);
+	TEE_Param params[TEE_NUM_PARAMS] = { };
+
+	params[0].value.a = ctx->rproc_id;
+
+	return TEE_InvokeTACommand(pta_session, TEE_TIMEOUT_INFINITE,
+				  PTA_REMOTEPROC_GET_MEM, param_types,
+				  params, NULL);
+}
+
+static TEE_Result remoteproc_release_mems(struct remoteproc_context *ctx)
+{
+	uint32_t param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_VALUE_INPUT,
+					       TEE_PARAM_TYPE_NONE,
+					       TEE_PARAM_TYPE_NONE,
+					       TEE_PARAM_TYPE_NONE);
+	TEE_Param params[TEE_NUM_PARAMS] = { };
+
+	params[0].value.a = ctx->rproc_id;
+
+	return TEE_InvokeTACommand(pta_session, TEE_TIMEOUT_INFINITE,
+				  PTA_REMOTEPROC_RELEASE_MEM, param_types,
+				  params, NULL);
+}
+
 static TEE_Result remoteproc_load_segment(uint8_t *src, uint32_t size,
 					  uint32_t da, uint32_t mem_size,
 					  void *priv)
@@ -972,18 +1002,27 @@ static TEE_Result remoteproc_load_fw(uint32_t pt,
 	DMSG("Got base addr: %p size %#"PRIx32, params[1].memref.buffer,
 	     params[1].memref.size);
 
+	res = remoteproc_get_mems(ctx);
+	if (res) {
+		EMSG("Can't get access right to memories");
+		goto out;
+	}
+
 	res = remoteproc_verify_firmware(ctx, params[1].memref.buffer,
 					 params[1].memref.size);
 	if (res) {
 		EMSG("Can't Authenticate the firmware (res = %#"PRIx32")", res);
-		goto out;
+		goto put_mems;
 	}
 
 	res = remoteproc_load_elf(ctx);
 	if (res)
-		goto out;
+		goto put_mems;
 
 	ctx->state = REMOTEPROC_LOADED;
+
+put_mems:
+	remoteproc_release_mems(ctx);
 
 out:
 	/* Clear reference to firmware image from shared memory */
