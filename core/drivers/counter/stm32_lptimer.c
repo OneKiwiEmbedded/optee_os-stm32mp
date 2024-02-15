@@ -345,7 +345,7 @@ stm32_lptimer_counter_set_config(struct counter_device *counter,
 
 	/* external-input = < polarity mux1 mux2 > */
 	ext_input = &conf->ext_input;
-	ext_input->num = len - 4;
+	ext_input->num = len - 3;
 	ext_input->polarity = get_param(param, 2);
 	ext_input->mux[0] = get_param(param, 3);
 
