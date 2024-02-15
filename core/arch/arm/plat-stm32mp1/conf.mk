@@ -411,6 +411,9 @@ CFG_ENABLE_EMBEDDED_TESTS ?= y
 CFG_WITH_STATS ?= y
 CFG_WERROR ?= y
 
+# Default enable software fallback on crypto drivers
+CFG_STM32_SAES_SW_FALLBACK ?= y
+
 # Enable OTP update with BSEC driver
 CFG_STM32_BSEC_WRITE ?= y
 
