@@ -287,14 +287,13 @@ static inline void io_clrsetbits8(vaddr_t addr, uint8_t clear_mask,
  */
 #define IO_READ32_POLL_TIMEOUT(_addr, _val, _cond, _delay_us, _timeout_us) \
 	({ \
-		uint32_t __timeout = 0; \
+		uint64_t __timeout = timeout_init_us(_timeout_us); \
 		uint32_t __delay = (_delay_us); \
 		\
-		while (__timeout < (_timeout_us)) { \
+		while (!timeout_elapsed(__timeout)) { \
 			(_val) = io_read32(_addr); \
 			if (_cond) \
 				break; \
-			__timeout += (__delay); \
 			udelay(__delay); \
 		} \
 		(_val) = io_read32(_addr); \
