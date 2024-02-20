@@ -258,6 +258,7 @@ static TEE_Result stm32_lpt_counter_start(struct counter_device *counter,
 	struct lptimer_ext_input_cfg *ext_input = &conf->ext_input;
 	struct lptimer_ext_trigger_cfg *ext_trigger = &conf->ext_trigger;
 	uintptr_t base = pdata->base;
+	TEE_Result res = TEE_ERROR_GENERIC;
 	uint32_t cfgr = 0;
 	uint32_t cfgr2 = 0;
 
@@ -278,7 +279,9 @@ static TEE_Result stm32_lpt_counter_start(struct counter_device *counter,
 		cfgr |= _LPTIM_CFGR_TIMOUT;
 	}
 
-	clk_enable(lpt_dev->pdata.clock);
+	res = clk_enable(lpt_dev->pdata.clock);
+	if (res)
+		return res;
 
 	/*
 	 * LPTIM CFGR2 & IER registers must only be modified
@@ -415,13 +418,16 @@ static enum itr_return stm32_lptimer_itr(struct itr_handler *h)
 	return ITRR_HANDLED;
 }
 
-static void stm32_lptimer_set_driverdata(struct lptimer_device *lpt_dev)
+static TEE_Result stm32_lptimer_set_driverdata(struct lptimer_device *lpt_dev)
 {
 	struct lptimer_driver_data *ddata = lpt_dev->ddata;
 	uintptr_t base = lpt_dev->pdata.base;
+	TEE_Result res = TEE_ERROR_GENERIC;
 	uint32_t regval = 0;
 
-	clk_enable(lpt_dev->pdata.clock);
+	res = clk_enable(lpt_dev->pdata.clock);
+	if (res)
+		return res;
 
 	regval = io_read32(base + _LPTIM_HWCFGR);
 	ddata->nb_ext_input = _LPTIM_FLD_GET(_LPTIM_HWCFGR_CFG1, regval);
@@ -439,6 +445,8 @@ static void stm32_lptimer_set_driverdata(struct lptimer_device *lpt_dev)
 	     ddata->encoder ? "true" : "false");
 
 	clk_disable(lpt_dev->pdata.clock);
+
+	return TEE_SUCCESS;
 }
 
 #ifdef CFG_EMBED_DTB
@@ -482,7 +490,9 @@ static TEE_Result stm32_lptimer_parse_fdt(struct lptimer_device *lpt_dev)
 	if (res)
 		return res;
 
-	stm32_lptimer_set_driverdata(lpt_dev);
+	res = stm32_lptimer_set_driverdata(lpt_dev);
+	if (res)
+		return res;
 
 	node = fdt_subnode_offset(fdt, node, "counter");
 	if (node >= 0 && _fdt_get_status(fdt, node) != DT_STATUS_DISABLED) {
