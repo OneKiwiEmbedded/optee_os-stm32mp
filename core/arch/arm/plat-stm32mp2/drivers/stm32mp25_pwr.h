@@ -46,4 +46,6 @@ stm32mp25_pwr_irq_probe(const void *fdt, int node, int interrupt);
 
 vaddr_t stm32_pwr_base(void);
 
+void stm32mp_pwr_monitoring_enable(void);
+
 #endif /*__STM32MP25_PWR_H*/

@@ -21,6 +21,9 @@
 #include <stm32_util.h>
 #include <trace.h>
 
+/*PWR control registers */
+#define _PWR_CR2			U(0x004)
+
 /* Non-shareable resources registers */
 #define _PWR_RSECCFGR			U(0X100)
 #define _PWR_RPRIVCFGR			U(0x104)
@@ -32,6 +35,8 @@
 #define _PWR_WIO_CIDCFGR(x)		(U(0x188) + U(0x8) * ((x) - 1))
 #define _PWR_WIO_SEMCR(x)		(U(0x18C) + U(0x8) * ((x) - 1))
 
+/*PWR_CR2 bitfields*/
+#define _PWR_CR2_MONEN			BIT(0)
 /*
  * CIDCFGR register bitfields
  */
@@ -78,6 +83,11 @@ static struct pwr_pdata *pwr_d;
 
 vaddr_t stm32_pwr_base(void)
 {
+	static struct io_pa_va base = { .pa = PWR_BASE };
+
+	if (!pwr_d)
+		return io_pa_or_va_secure(&base, 1);
+
 	if (!pwr_d->base)
 		panic();
 
@@ -292,6 +302,7 @@ static TEE_Result stm32mp_pwr_probe(const void *fdt, int node,
 	res = stm32mp25_pwr_irq_probe(fdt, node, pwr_d->interrupt);
 	if (res) {
 		free(pwr_d);
+		pwr_d = NULL;
 		return res;
 	}
 #endif
@@ -318,3 +329,10 @@ DEFINE_DT_DRIVER(stm32mp_pwr_dt_driver) = {
 	.match_table = stm32mp_pwr_match_table,
 	.probe = stm32mp_pwr_probe,
 };
+
+void stm32mp_pwr_monitoring_enable(void)
+{
+	vaddr_t pwr_base = stm32_pwr_base();
+
+	io_setbits32(pwr_base + _PWR_CR2, _PWR_CR2_MONEN);
+}
