@@ -257,4 +257,6 @@ static inline bool stm32mp_gpio_bank_is_non_secure(unsigned int bank __unused)
 
 void __noreturn do_reset(const char *str);
 
+TEE_Result stm32_activate_internal_tamper(int id);
+
 #endif /*__STM32_UTIL_H__*/

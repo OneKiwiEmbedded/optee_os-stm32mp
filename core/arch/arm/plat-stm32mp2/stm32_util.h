@@ -32,6 +32,8 @@ bool stm32mp_supports_cpu_opp(uint32_t opp_id);
 
 void __noreturn do_reset(const char *str);
 
+TEE_Result stm32_activate_internal_tamper(int id);
+
 /**
  * stm32_rif_reconfigure_mem_region() - Allows to reconfigure a previously
  *					configured memory region.
