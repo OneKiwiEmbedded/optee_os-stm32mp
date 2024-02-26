@@ -410,7 +410,17 @@ TEE_Result stm32_activate_internal_tamper(int id)
 	switch (id) {
 	case INT_TAMP1: /* Backup domain (V08CAP) voltage monitoring */
 	case INT_TAMP2: /* Temperature monitoring */
-		stm32mp_pwr_monitoring_enable();
+		stm32mp_pwr_monitoring_enable(PWR_MON_V08CAP_TEMP);
+		res = TEE_SUCCESS;
+		break;
+
+	case INT_TAMP7: /* VDDCORE monitoring under/over voltage */
+		stm32mp_pwr_monitoring_enable(PWR_MON_VCORE);
+		res = TEE_SUCCESS;
+		break;
+
+	case INT_TAMP12: /* VDDCPU (Cortex A35) monitoring under/over voltage */
+		stm32mp_pwr_monitoring_enable(PWR_MON_VCPU);
 		res = TEE_SUCCESS;
 		break;
 
@@ -418,12 +428,10 @@ TEE_Result stm32_activate_internal_tamper(int id)
 	case INT_TAMP4:
 	case INT_TAMP5:
 	case INT_TAMP6:
-	case INT_TAMP7:
 	case INT_TAMP8:
 	case INT_TAMP9:
 	case INT_TAMP10:
 	case INT_TAMP11:
-	case INT_TAMP12:
 	case INT_TAMP13:
 	case INT_TAMP14:
 	case INT_TAMP15:

@@ -23,6 +23,8 @@
 
 /*PWR control registers */
 #define _PWR_CR2			U(0x004)
+#define _PWR_CR5			U(0x010)
+#define _PWR_CR6			U(0x014)
 
 /* Non-shareable resources registers */
 #define _PWR_RSECCFGR			U(0X100)
@@ -37,6 +39,13 @@
 
 /*PWR_CR2 bitfields*/
 #define _PWR_CR2_MONEN			BIT(0)
+
+/*PWR_CR5 bitfields*/
+#define _PWR_CR5_VCOREMONEN		BIT(0)
+
+/*PWR_CR6 bitfields*/
+#define _PWR_CR6_VCPUMONEN		BIT(0)
+
 /*
  * CIDCFGR register bitfields
  */
@@ -330,9 +339,20 @@ DEFINE_DT_DRIVER(stm32mp_pwr_dt_driver) = {
 	.probe = stm32mp_pwr_probe,
 };
 
-void stm32mp_pwr_monitoring_enable(void)
+void stm32mp_pwr_monitoring_enable(enum pwr_monitoring monitoring)
 {
 	vaddr_t pwr_base = stm32_pwr_base();
-
-	io_setbits32(pwr_base + _PWR_CR2, _PWR_CR2_MONEN);
+	switch (monitoring) {
+	case PWR_MON_V08CAP_TEMP:
+		io_setbits32(pwr_base + _PWR_CR2, _PWR_CR2_MONEN);
+		break;
+	case PWR_MON_VCORE:
+		io_setbits32(pwr_base + _PWR_CR5, _PWR_CR5_VCOREMONEN);
+		break;
+	case PWR_MON_VCPU:
+		io_setbits32(pwr_base + _PWR_CR6, _PWR_CR6_VCPUMONEN);
+		break;
+	default:
+		break;
+	}
 }
