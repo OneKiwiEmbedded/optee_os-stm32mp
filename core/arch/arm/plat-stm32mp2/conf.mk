@@ -138,6 +138,12 @@ CFG_STM32_EARLY_CONSOLE_UART ?= 2
 # Default disable external DT support
 CFG_EXTERNAL_DT ?= n
 
+#SAES and CRYP cannot be registered at the same time in the crypto framework
+#If CRYP and SAES are enabled, disable CRYP for safety purpose
+ifeq ($(call cfg-all-enabled, CFG_STM32_CRYP CFG_STM32_SAES), y)
+override CFG_STM32_CRYP := n
+endif # cfg-all-enabled, CFG_STM32_CRYP CFG_STM32_SAES
+
 # If any crypto driver is enabled, enable the crypto-framework layer
 ifeq ($(call cfg-one-enabled, CFG_STM32_CRYP \
 			      CFG_STM32_HASH \
