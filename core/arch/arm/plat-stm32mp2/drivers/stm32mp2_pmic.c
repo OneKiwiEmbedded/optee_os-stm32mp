@@ -84,6 +84,8 @@ struct regu_handle_s {
 	struct pmic_handle_s *pmic;
 	struct regul_desc desc;
 	uint32_t id;
+	uint16_t *bypass_volt_table;
+	size_t bypass_volt_table_size;
 	uint16_t bypass_mv;
 	uint8_t lp_state[STM32_PM_NB_SOC_MODES];
 	uint16_t lp_mv[STM32_PM_NB_SOC_MODES];
@@ -183,9 +185,14 @@ static TEE_Result pmic_list_voltages(const struct regul_desc *desc,
 
 	FMSG("%s: list volt", desc->node_name);
 
-	/*
-	 * TODO: add bypass voltage to the end of the list it is greater
-	 */
+	if (regu->bypass_volt_table) {
+		if (levels)
+			*levels = regu->bypass_volt_table;
+		if (count)
+			*count = regu->bypass_volt_table_size;
+
+		return TEE_SUCCESS;
+	}
 
 	return stpmic2_regulator_levels_mv(pmic, id,
 					   (const uint16_t **)levels, count);
@@ -346,6 +353,46 @@ static const struct regul_property prop_table[] = {
 	},
 };
 
+/*
+ * The bypass voltage is added to a new voltage table
+ * in case it is not in the range of natively supported
+ * voltages by the regulator.
+ */
+static TEE_Result stpmic2_handle_bypass_voltage(const struct regul_desc *desc)
+{
+	struct regu_handle_s *regu = (struct regu_handle_s *)desc->driver_data;
+	struct pmic_handle_s *pmic = regu->pmic;
+	uint32_t id = regu->id;
+	TEE_Result res = TEE_ERROR_GENERIC;
+	const uint16_t *levels = NULL;
+	size_t count = U(0);
+	size_t i = U(0);
+
+	res =  stpmic2_regulator_levels_mv(pmic, id, &levels, &count);
+	if (res)
+		return res;
+
+	while ((i < count) && (levels[i] < regu->bypass_mv))
+		i++;
+
+	if (i < count && levels[i] == regu->bypass_mv) {
+		FMSG("%s: bypass voltage found for volt %"PRIu16"mV\n",
+		     desc->node_name, regu->bypass_mv);
+	} else {
+		regu->bypass_volt_table = calloc(count + U(1),
+						 sizeof(uint16_t));
+
+		/* Insert bypass voltage into the new table */
+		memcpy(regu->bypass_volt_table, levels, i * sizeof(uint16_t));
+		regu->bypass_volt_table[i] = regu->bypass_mv;
+		memcpy(regu->bypass_volt_table + i + U(1), levels + i,
+		       (count - i) * sizeof(uint16_t));
+		regu->bypass_volt_table_size = count + U(1);
+	}
+
+	return TEE_SUCCESS;
+}
+
 TEE_Result stpmic2_set_prop(const struct regul_desc *desc,
 			    enum stpmic2_prop_id prop, uint32_t value)
 {
@@ -359,7 +406,7 @@ TEE_Result stpmic2_set_prop(const struct regul_desc *desc,
 
 	if (prop == STPMIC2_BYPASS_UV) {
 		regu->bypass_mv = (uint16_t)(value / U(1000));
-		return TEE_SUCCESS;
+		return stpmic2_handle_bypass_voltage(desc);
 	}
 
 	return stpmic2_regulator_set_prop(pmic, id, prop, value);
