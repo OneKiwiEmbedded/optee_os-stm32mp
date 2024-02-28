@@ -171,6 +171,11 @@ bool stm32_bsec_can_access_otp(uint32_t otp_id);
 bool stm32_bsec_nsec_can_access_otp(uint32_t otp_id);
 
 /*
+ * Return true if host-self debug is enabled.
+ */
+bool stm32_bsec_self_hosted_debug_is_enabled(void);
+
+/*
  * Find and get OTP location from its name.
  * @name: sub-node name to look up.
  * @otp_id: pointer to read OTP number or NULL.
