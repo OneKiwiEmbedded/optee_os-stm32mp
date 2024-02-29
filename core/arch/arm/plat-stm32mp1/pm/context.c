@@ -345,7 +345,8 @@ __maybe_unused static void save_ddr_training_area(void)
  * structure must then be saved before going to STANDBY in the PM mailbox
  * shared with the warm boot boot stage.
  */
-#if CFG_STM32MP1_PM_CONTEXT_VERSION >= 2
+#if (CFG_STM32MP1_PM_CONTEXT_VERSION >= 2) && \
+    defined(CFG_STM32MP1_OPTEE_IN_SYSRAM)
 __maybe_unused static void save_pll1_settings(void)
 {
 	struct pm_mailbox *mailbox = get_pm_mailbox();
