@@ -13,6 +13,7 @@
 #include <kernel/boot.h>
 #include <kernel/delay.h>
 #include <kernel/dt.h>
+#include <kernel/notif.h>
 #include <kernel/panic.h>
 #include <kernel/pm.h>
 #include <libfdt.h>
@@ -612,6 +613,25 @@ static TEE_Result parse_regulator_fdt_nodes(const void *fdt, int node,
 }
 
 #ifdef CFG_STM32_PWR_IRQ
+
+enum itr_return stpmic2_irq_callback(struct pmic_handle_s *pmic, uint8_t it_id)
+{
+	struct pmic_it_handle_s *prv = NULL;
+
+	FMSG("Stpmic2 it id %d", (int)it_id);
+
+	SLIST_FOREACH(prv, &pmic->it_list, link)
+		if (prv->pmic_it == it_id) {
+			FMSG("STPMIC2 send notif %u", prv->notif_id);
+
+			notif_send_it(prv->notif_id);
+
+			return ITRR_HANDLED;
+		}
+
+	return ITRR_NONE;
+}
+
 static enum itr_return stpmic2_irq_handler(struct itr_handler *handler)
 {
 	struct pmic_handle_s *pmic = handler->data;
@@ -628,8 +648,12 @@ static TEE_Result initialize_pmic2_irq(const void *fdt, int node,
 {
 	struct itr_handler *hdl = NULL;
 	const fdt32_t *cuint = NULL;
+	const uint32_t *notif_ids = NULL;
+	int nb_notif = 0;
 
 	FMSG("Init stpmic2 irq");
+
+	SLIST_INIT(&pmic->it_list);
 
 	cuint = fdt_getprop(fdt, node, "st,wakeup-pin-number", NULL);
 	if (cuint) {
@@ -648,12 +672,47 @@ static TEE_Result initialize_pmic2_irq(const void *fdt, int node,
 		stm32mp25_pwr_itr_enable(hdl->it);
 	}
 
-	/* Enable ponkey irq */
-	if (stpmic2_set_irq_mask(pmic, IT_PONKEY_F, false))
-		return TEE_ERROR_GENERIC;
+	notif_ids = fdt_getprop(fdt, node, "st,notif-it-id", &nb_notif);
+	if (!notif_ids)
+		return TEE_ERROR_ITEM_NOT_FOUND;
 
-	if (stpmic2_set_irq_mask(pmic, IT_PONKEY_R, false))
-		return TEE_ERROR_GENERIC;
+	if (nb_notif > 0) {
+		struct pmic_it_handle_s *prv = NULL;
+		unsigned int i = 0;
+		const uint32_t *pmic_its = NULL;
+		int nb_it = 0;
+
+		pmic_its = fdt_getprop(fdt, node, "st,pmic-it-id", &nb_it);
+		if (!pmic_its)
+			return TEE_ERROR_ITEM_NOT_FOUND;
+
+		if (nb_it != nb_notif)
+			panic("st,notif-it-id incorrect description");
+
+		for (i = 0; i < (nb_notif / sizeof(uint32_t)); i++) {
+			uint8_t pmic_it = 0;
+
+			prv = calloc(1, sizeof(*prv));
+			if (!prv)
+				panic("pmic: Could not allocate pmic it");
+
+			pmic_it = fdt32_to_cpu(pmic_its[i]);
+
+			assert(pmic_it <= IT_LDO8_OCP);
+
+			prv->pmic_it = pmic_it;
+			prv->notif_id = fdt32_to_cpu(notif_ids[i]);
+
+			SLIST_INSERT_HEAD(&pmic->it_list, prv, link);
+
+			/* Enable requested interrupt */
+			if (stpmic2_set_irq_mask(pmic, pmic_it, false))
+				return TEE_ERROR_GENERIC;
+
+			FMSG("STPMIC2 forwards pmic_it:%u as notif:%u",
+			     prv->pmic_it, prv->notif_id);
+		}
+	}
 
 	/* Unmask all over-current interrupts */
 	if (stpmic2_register_write(pmic, INT_MASK_R3, 0x00))

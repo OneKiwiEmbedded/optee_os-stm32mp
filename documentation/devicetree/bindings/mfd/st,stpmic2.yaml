@@ -175,6 +175,39 @@ properties:
     minItems: 1
     maxItems: 1
 
+  st,pmic-it-id:
+    description: PMIC interruptions ids to forward to the non-secure world
+      in the form of OPTEE notifications described by st,notif-it-id.
+        PKEY_FA = 0
+        PKEY_RI = 1
+        WKP_FA = 2
+        WKP_RI = 3
+        VINLOW_FA = 4
+        VINLOW_RI = 5
+        VBUS_FA = 6
+        VBUS_RI = 7
+        THW_FA = 8
+        THW_RI = 9
+        BUCK1_OCP = 16
+        BUCK2_OCP = 17
+        BUCK3_OCP = 18
+        BUCK4_OCP = 19
+        BUCK5_OCP = 20
+        BUCK6_OCP = 21
+        BUCK7_OCP = 22
+        REFDDR_OC = 23
+        LDO1_OCP2 = 24
+        LDO2_OCP2 = 25
+        LDO3_OCP2 = 26
+        LDO4_OCP2 = 27
+        LDO5_OCP2 = 28
+        LDO6_OCP2 = 29
+        LDO7_OCP3 = 30
+        LDO8_OCP3 = 31
+    $ref: /schemas/types.yaml#/definitions/uint32
+    minItems: 1
+    maxItems: 32
+
 additionalProperties: false
 
 required:
@@ -183,6 +216,7 @@ required:
 
 examples:
   - |
+    #include <dt-bindings/mfd/st,stpmic2.h>
     i2c {
       #address-cells = <1>;
       #size-cells = <0>;
@@ -191,6 +225,8 @@ examples:
         reg = <0x33>;
 
         st,wakeup-pin-number = <1>;
+        st,pmic-it-id = <IT_PKEY_FA IT_PKEY_RI>;
+        st,notif-it-id = <0 1>;
 
         regulators {
           compatible = "st,stpmic2-regulators";

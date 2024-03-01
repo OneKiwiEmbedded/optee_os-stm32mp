@@ -627,20 +627,29 @@ TEE_Result stpmic2_irq_gen(struct pmic_handle_s *pmic, uint8_t num)
 	return stpmic2_register_update(pmic, reg, mask, mask);
 }
 
-static void stpmic2_handle_ocp(struct pmic_handle_s *pmic,
-			       uint8_t reg_index, uint8_t val)
+static void stpmic2_handle_irq_reg(struct pmic_handle_s *pmic,
+				   uint8_t reg_index, uint8_t val)
 {
 	int i = 0;
 
 	for (i = 0; i < 7; i++) {
 		if (val & BIT(i)) {
-			uint8_t id = (reg_index - U(2)) * U(8) + i;
+			uint8_t it_id = reg_index * U(8) + i;
+			enum itr_return res;
 
-			EMSG("Overcurrent detected on %s, disable regulator",
-			     regul_table[id].name);
+			res = stpmic2_irq_callback(pmic, it_id);
 
-			stpmic2_regulator_set_state(pmic, id, false);
-			panic();
+			/* handle over-current protection */
+			if (res != ITRR_HANDLED && it_id >= IT_BUCK1_OCP) {
+				uint8_t regu_id = (reg_index - U(2)) * U(8) + i;
+
+				EMSG("Overcurrent on %s, disable regulator",
+				     regul_table[regu_id].name);
+
+				stpmic2_regulator_set_state(pmic, regu_id,
+							    false);
+				panic();
+			}
 		}
 	}
 }
@@ -654,9 +663,8 @@ int stpmic2_handle_irq(struct pmic_handle_s *pmic)
 
 	for (i = 0; i < 4; i++) {
 		if (stpmic2_register_read(pmic, INT_PENDING_R1 + i,
-					  &read_val)) {
+					  &read_val))
 			panic();
-		}
 
 		if (read_val) {
 			FMSG("Stpmic2 irq pending reg=%u irq=0x%x", i,
@@ -664,9 +672,7 @@ int stpmic2_handle_irq(struct pmic_handle_s *pmic)
 
 			pmic->irq_count++;
 
-			/* over-current detection */
-			if (i >= 2)
-				stpmic2_handle_ocp(pmic, i, read_val);
+			stpmic2_handle_irq_reg(pmic, i, read_val);
 
 			if (stpmic2_register_write(pmic,  INT_CLEAR_R1 + i,
 						   read_val)) {
