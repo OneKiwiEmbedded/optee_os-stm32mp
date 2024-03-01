@@ -542,6 +542,8 @@ static TEE_Result stm32_ltdc_probe(const void *fdt, int node,
 	/* Force the LTDC to non secure access */
 	stm32_ltdc_final(ldev);
 
+	clk_disable(ldev->clock);
+
 	return TEE_SUCCESS;
 err3:
 	itr_free(ldev->itr1);
