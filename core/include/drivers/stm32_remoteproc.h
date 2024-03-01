@@ -91,6 +91,20 @@ TEE_Result stm32_rproc_enable_sec_boot(uint32_t rproc_id);
 TEE_Result stm32_rproc_clean(uint32_t rproc_id);
 
 /*
+ * stm32_rproc_get_mem() - get access right to memories
+ * @rproc_id	unique identifier of the remote processor
+ * Return TEE_SUCCESS or appropriate error.
+ */
+TEE_Result stm32_rproc_get_mem(uint32_t rproc_id);
+
+/*
+ * stm32_rproc_release_mem() - release access right to memories
+ * @rproc_id	unique identifier of the remote processor
+ * Return TEE_SUCCESS or appropriate error.
+ */
+TEE_Result stm32_rproc_release_mem(uint32_t rproc_id);
+
+/*
  * stm32_rproc_reset_grant_access() - grant the non secure access to the
  *                                    Cortex-M reset and hold boot.
  * @rproc_id	unique identifier of the remote processor
