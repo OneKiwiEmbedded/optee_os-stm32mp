@@ -4319,9 +4319,6 @@ static void clk_stm32_init_oscillators(const void *fdt, int node)
 
 static TEE_Result clk_stm32_apply_rcc_config(struct stm32_clk_platdata *pdata)
 {
-	io_write32(pdata->rcc_base + RCC_C1MSRDCR, pdata->c1msrd &
-		   RCC_C1MSRDCR_C1MSRD_MASK);
-
 	if (pdata->safe_rst)
 		stm32mp25_syscfg_set_safe_reset(true);
 
@@ -4810,7 +4807,13 @@ static TEE_Result stm32_rcc_pm_resume(void)
 
 static TEE_Result stm32_rcc_pm_suspend(void)
 {
+	struct stm32_clk_platdata *pdata = &stm32mp25_clock_pdata;
+
 	clk_save_context();
+
+	/* Set c1msrd for bootrom use. It's reset by HW during standby */
+	io_write32(pdata->rcc_base + RCC_C1MSRDCR, pdata->c1msrd &
+		   RCC_C1MSRDCR_C1MSRD_MASK);
 
 	return TEE_SUCCESS;
 }
