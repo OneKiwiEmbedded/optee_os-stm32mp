@@ -17,8 +17,8 @@
 #include <mm/core_mmu.h>
 #ifdef CFG_STM32MP25
 #include <stm32_sysconf.h>
-#include <stm32_util.h>
 #endif /* CFG_STM32MP25 */
+#include <stm32_util.h>
 
 #define TIMEOUT_US_1MS	U(1000)
 
@@ -39,7 +39,11 @@ struct stm32_rproc_mem {
 	paddr_t da;
 	size_t size;
 	uint32_t phandle;
+#ifdef CFG_STM32MP25
 	void *config;
+#else
+	const void *config;
+#endif
 };
 
 /**
@@ -100,7 +104,6 @@ void *stm32_rproc_get(uint32_t rproc_id)
 	return rproc;
 }
 
-#ifdef CFG_STM32MP25
 /* Re-apply default access right on the memory regions */
 static TEE_Result
 stm32_rproc_release_mems_access(struct stm32_rproc_instance *rproc)
@@ -118,9 +121,14 @@ stm32_rproc_release_mems_access(struct stm32_rproc_instance *rproc)
 			continue;
 		DMSG("Release access of the memory region %#"PRIxPA" size %#zx",
 		     mems[i].addr, mems[i].size);
+#ifdef CFG_STM32MP25
 		res = stm32_rif_reconfigure_mem_region(rproc->fdt,
 						       mems[i].phandle,
 						       &mems[i].config);
+#else
+		res = stm32_reconfigure_region(rproc->fdt, mems[i].phandle,
+					       &mems[i].config);
+#endif /* CFG_STM32MP25 */
 		if (res)
 			EMSG("Failed to apply access rights on region %#"
 			     PRIxPA" size %#zx", mems[i].addr, mems[i].size);
@@ -147,9 +155,14 @@ stm32_rproc_get_mems_access(struct stm32_rproc_instance *rproc)
 		DMSG("get access of the memory region %#"PRIxPA" size %#zx",
 		     mems[i].addr, mems[i].size);
 		mems[i].config = NULL;
+#ifdef CFG_STM32MP25
 		res = stm32_rif_reconfigure_mem_region(rproc->fdt,
 						       mems[i].phandle,
 						       &mems[i].config);
+#else
+		res = stm32_reconfigure_region(rproc->fdt, mems[i].phandle,
+					       &mems[i].config);
+#endif /* CFG_STM32MP25 */
 		if (res)
 			goto err;
 	}
@@ -161,25 +174,6 @@ err:
 
 	return res;
 }
-#else
-/* Re-apply default access right  on the memory regions */
-static TEE_Result
-stm32_rproc_release_mems_access(struct stm32_rproc_instance *rproc __unused)
-{
-	/* To implement for the stm32mp1 */
-
-	return TEE_SUCCESS;
-}
-
-/* Get the exclusive access on the memory regions */
-static TEE_Result
-stm32_rproc_get_mems_access(struct stm32_rproc_instance *rproc __unused)
-{
-	/* To implement for the stm32mp1 */
-
-	return TEE_SUCCESS;
-}
-#endif
 
 static TEE_Result stm32mp2_rproc_start(struct stm32_rproc_instance *rproc)
 {
