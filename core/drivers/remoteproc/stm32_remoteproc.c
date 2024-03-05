@@ -679,14 +679,6 @@ static TEE_Result stm32_rproc_probe(const void *fdt, int node,
 	stm32_rproc_a35ss_cfg(rproc);
 #endif /* CFG_STM32MP25 */
 
-	/*
-	 * The memory management should be enhance with firewall
-	 * mechanism to map the memory in secure area for the firmware
-	 * loading and then to give exclusive access right to the
-	 * coprocessor (except for the shared memory).
-	 */
-	IMSG("Warning: the remoteproc memories are not protected by firewall");
-
 	if (!rproc->cdata->ns_loading)
 		SLIST_INSERT_HEAD(&rproc_list, rproc, link);
 
