@@ -145,7 +145,7 @@ static TEE_Result pmic_get_voltage(const struct regul_desc *desc, uint16_t *mv)
 
 	FMSG("%s: get volt %"PRIu16"mV", desc->node_name, *mv);
 
-	return res;
+	return TEE_SUCCESS;
 }
 
 static TEE_Result pmic_set_voltage(const struct regul_desc *desc, uint16_t mv)

@@ -475,23 +475,17 @@ TEE_Result stpmic2_regulator_set_prop(struct pmic_handle_s *pmic, uint8_t id,
 		return stpmic2_register_update(pmic, regul->ocp_reg,
 					       U(0), regul->ocp_mask);
 	case STPMIC2_PWRCTRL_EN:
-		if (!regul->pwrctrl_cr)
-			return TEE_ERROR_BAD_PARAMETERS;
-		/* set pwrctrl eable, disable pwrctrl reset */
+		/* set pwrctrl enable, disable pwrctrl reset */
 		return stpmic2_register_update(pmic, regul->pwrctrl_cr,
 					       PWRCTRL_EN,
 					       PWRCTRL_EN | PWRCTRL_RS);
 	case STPMIC2_PWRCTRL_RS:
-		if (!regul->pwrctrl_cr)
-			return TEE_ERROR_BAD_PARAMETERS;
 		/* set pwrctrl reset, disable pwrctrl enable */
 		return stpmic2_register_update(pmic, regul->pwrctrl_cr,
 					       PWRCTRL_RS,
 					       PWRCTRL_EN | PWRCTRL_RS);
 	case STPMIC2_PWRCTRL_SEL:
-		if (!regul->pwrctrl_cr) /* fixme : useless */
-			return TEE_ERROR_BAD_PARAMETERS;
-		/* select pwr contrl line */
+		/* select pwr control line */
 		return stpmic2_register_update(pmic, regul->pwrctrl_cr,
 					       arg << PWRCTRL_SEL_SHIFT,
 					       PWRCTRL_SEL_MASK);
