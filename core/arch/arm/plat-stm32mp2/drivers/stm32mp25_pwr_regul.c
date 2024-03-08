@@ -137,8 +137,11 @@ static void pwr_disable_reg(const struct regul_desc *desc)
 
 	FMSG("%s: disable", desc->node_name);
 
-	if (regu->enable_mask)
+	if (regu->enable_mask) {
+		/* Make sure the previous operations are visible */
+		dsb();
 		io_clrbits32(pwr_reg, regu->enable_mask | regu->valid_mask);
+	}
 }
 
 static TEE_Result pwr_set_state(const struct regul_desc *desc, bool enable)
@@ -268,6 +271,9 @@ static TEE_Result pwr_set_voltage(const struct regul_desc *desc, uint16_t mv)
 		if (res)
 			return res;
 	}
+
+	/* Make sure the regulator is updated before returning to caller */
+	dsb();
 
 	return result;
 }
