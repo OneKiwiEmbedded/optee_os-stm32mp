@@ -552,11 +552,13 @@ static TEE_Result stm32_cpu_opp_get_dt_subnode(const void *fdt, int node)
 	const fdt64_t *cuint64 = NULL;
 	const fdt32_t *cuint32 = NULL;
 	uint64_t freq_khz = 0;
+	uint64_t freq_khz_opp_def = 0;
 	uint32_t volt_mv = 0;
 	unsigned long clk_cpu = 0;
 	unsigned int i = 0;
 	int subnode = -1;
 	TEE_Result res = TEE_ERROR_GENERIC;
+	bool opp_default = false;
 
 	fdt_for_each_subnode(subnode, fdt, node)
 		if (!stm32_cpu_opp_is_supported(fdt, subnode))
@@ -606,29 +608,33 @@ static TEE_Result stm32_cpu_opp_get_dt_subnode(const void *fdt, int node)
 		DMSG("Found OPP %u (%"PRIu64"kHz/%"PRIu32"mV) from DT",
 		     i, freq_khz, volt_mv);
 
-		if (fdt_getprop(fdt, subnode, "st,opp-default", NULL)) {
-			assert(cpu_opp.current_opp == cpu_opp.opp_count);
-			clk_cpu = clk_get_rate(cpu_opp.clock);
-			assert(clk_cpu);
-			if (freq_khz * 1000U > clk_cpu)
-				res = set_voltage_then_clock(i);
-			else
-				res = set_clock_then_voltage(i);
-
-			if (res)
-				return res;
-
-#ifdef CFG_SCPFW_MOD_DVFS
-			cpu_opp.default_opp = i;
-#endif
+		if (fdt_getprop(fdt, subnode, "st,opp-default", NULL) &&
+		    freq_khz > freq_khz_opp_def) {
+			opp_default = true;
 			cpu_opp.current_opp = i;
+			freq_khz_opp_def = freq_khz;
 		}
 
 		i++;
 	}
 
-	if (cpu_opp.current_opp == cpu_opp.opp_count)
+	/* Erreur when "st,opp-default" is not present */
+	if (!opp_default)
 		return TEE_ERROR_GENERIC;
+
+	/* Select the max "st,opp-default" node as current OPP */
+#ifdef CFG_SCPFW_MOD_DVFS
+	cpu_opp.default_opp = cpu_opp.current_opp;
+#endif
+	clk_cpu = clk_get_rate(cpu_opp.clock);
+	assert(clk_cpu);
+	if (freq_khz_opp_def * 1000U > clk_cpu)
+		res = set_voltage_then_clock(cpu_opp.current_opp);
+	else
+		res = set_clock_then_voltage(cpu_opp.current_opp);
+
+	if (res)
+		return res;
 
 #ifdef CFG_STM32MP13
 	register_pm_driver_cb(cpu_opp_pm, NULL, "cpu-opp");
