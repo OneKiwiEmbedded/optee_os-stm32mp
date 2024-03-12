@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2018-2022, STMicroelectronics
+ * Copyright (c) 2018-2024, STMicroelectronics
  */
 
 #include <assert.h>
@@ -8,6 +8,7 @@
 #include <drivers/clk_dt.h>
 #include <drivers/rstctrl.h>
 #include <drivers/stm32_firewall.h>
+#include <drivers/stm32_rng.h>
 #include <io.h>
 #include <kernel/delay.h>
 #include <kernel/dt.h>
@@ -305,11 +306,28 @@ static void disable_rng_clock(void)
 		clk_disable(stm32_rng->bus_clock);
 }
 
-static TEE_Result init_rng(void)
+TEE_Result stm32_rng_init(void)
 {
+	TEE_Result res = TEE_ERROR_GENERIC;
 	vaddr_t rng_base = get_base();
 	uint64_t timeout_ref = 0;
 	uint32_t cr_ced_mask = 0;
+
+	res = enable_rng_clock();
+	if (res)
+		return res;
+
+	if (stm32_rng->rstctrl &&
+	    rstctrl_assert_to(stm32_rng->rstctrl, RNG_RESET_TIMEOUT_US)) {
+		res = TEE_ERROR_GENERIC;
+		goto out;
+	}
+
+	if (stm32_rng->rstctrl &&
+	    rstctrl_deassert_to(stm32_rng->rstctrl, RNG_RESET_TIMEOUT_US)) {
+		res = TEE_ERROR_GENERIC;
+		goto out;
+	}
 
 	if (!stm32_rng->clock_error)
 		cr_ced_mask = RNG_CR_CED;
@@ -377,10 +395,14 @@ static TEE_Result init_rng(void)
 	if (!(io_read32(rng_base + RNG_SR) & RNG_SR_DRDY))
 		return TEE_ERROR_GENERIC;
 
-	return TEE_SUCCESS;
+	res = TEE_SUCCESS;
+out:
+	disable_rng_clock();
+
+	return res;
 }
 
-static TEE_Result __maybe_unused stm32_rng_read(uint8_t *out, size_t size)
+TEE_Result stm32_rng_read(uint8_t *out, size_t size)
 {
 	TEE_Result rc = TEE_ERROR_GENERIC;
 	bool burst_timeout = false;
@@ -623,8 +645,8 @@ static TEE_Result stm32_rng_parse_fdt(const void *fdt, int node)
 static TEE_Result stm32_rng_probe(const void *fdt, int offs,
 				  const void *compat_data)
 {
-	TEE_Result res = TEE_ERROR_GENERIC;
 	unsigned int __maybe_unused version = 0;
+	TEE_Result res = TEE_ERROR_GENERIC;
 
 	/* Expect a single RNG instance */
 	assert(!stm32_rng);
@@ -649,23 +671,11 @@ static TEE_Result stm32_rng_probe(const void *fdt, int offs,
 	     (version & RNG_VERR_MAJOR_MASK) >> RNG_VERR_MAJOR_SHIFT,
 	     version & RNG_VERR_MINOR_MASK);
 
-	if (stm32_rng->rstctrl &&
-	    rstctrl_assert_to(stm32_rng->rstctrl, RNG_RESET_TIMEOUT_US)) {
-		res = TEE_ERROR_GENERIC;
-		goto err_clock;
-	}
-
-	if (stm32_rng->rstctrl &&
-	    rstctrl_deassert_to(stm32_rng->rstctrl, RNG_RESET_TIMEOUT_US)) {
-		res = TEE_ERROR_GENERIC;
-		goto err_clock;
-	}
-
-	res = init_rng();
-	if (res)
-		goto err_clock;
-
 	disable_rng_clock();
+
+	res = stm32_rng_init();
+	if (res)
+		goto err;
 
 	if (IS_ENABLED(CFG_STM32MP15)) {
 		/*
@@ -697,8 +707,6 @@ static TEE_Result stm32_rng_probe(const void *fdt, int offs,
 
 	return TEE_SUCCESS;
 
-err_clock:
-	disable_rng_clock();
 err:
 	free(stm32_rng);
 	stm32_rng = NULL;
