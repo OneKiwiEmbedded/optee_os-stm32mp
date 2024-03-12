@@ -285,6 +285,26 @@ static uint32_t stm32_rng_clock_freq_restrain(void)
 	return clock_div;
 }
 
+static TEE_Result enable_rng_clock(void)
+{
+	TEE_Result res = clk_enable(stm32_rng->clock);
+
+	if (!res && stm32_rng->bus_clock) {
+		res = clk_enable(stm32_rng->bus_clock);
+		if (res)
+			clk_disable(stm32_rng->clock);
+	}
+
+	return res;
+}
+
+static void disable_rng_clock(void)
+{
+	clk_disable(stm32_rng->clock);
+	if (stm32_rng->bus_clock)
+		clk_disable(stm32_rng->bus_clock);
+}
+
 static TEE_Result init_rng(void)
 {
 	vaddr_t rng_base = get_base();
@@ -375,17 +395,9 @@ static TEE_Result __maybe_unused stm32_rng_read(uint8_t *out, size_t size)
 		return TEE_ERROR_NOT_SUPPORTED;
 	}
 
-	rc = clk_enable(stm32_rng->clock);
+	rc = enable_rng_clock();
 	if (rc)
 		return rc;
-
-	if (stm32_rng->bus_clock) {
-		rc = clk_enable(stm32_rng->bus_clock);
-		if (rc) {
-			clk_disable(stm32_rng->clock);
-			return rc;
-		}
-	}
 
 	rng_base = get_base();
 
@@ -424,9 +436,7 @@ static TEE_Result __maybe_unused stm32_rng_read(uint8_t *out, size_t size)
 
 out:
 	assert(!rc || rc == TEE_ERROR_GENERIC);
-	clk_disable(stm32_rng->clock);
-	if (stm32_rng->bus_clock)
-		clk_disable(stm32_rng->bus_clock);
+	disable_rng_clock();
 
 	return rc;
 }
@@ -542,26 +552,16 @@ stm32_rng_pm(enum pm_op op, unsigned int pm_hint __unused,
 
 	assert(stm32_rng);
 
-	res = clk_enable(stm32_rng->clock);
+	res = enable_rng_clock();
 	if (res)
 		return res;
-
-	if (stm32_rng->bus_clock) {
-		res = clk_enable(stm32_rng->bus_clock);
-		if (res) {
-			clk_disable(stm32_rng->clock);
-			return res;
-		}
-	}
 
 	if (op == PM_OP_RESUME)
 		res = stm32_rng_pm_resume();
 	else
 		res = stm32_rng_pm_suspend();
 
-	clk_disable(stm32_rng->clock);
-	if (stm32_rng->bus_clock)
-		clk_disable(stm32_rng->bus_clock);
+	disable_rng_clock();
 
 	return res;
 }
@@ -640,17 +640,9 @@ static TEE_Result stm32_rng_probe(const void *fdt, int offs,
 	if (res)
 		goto err;
 
-	res = clk_enable(stm32_rng->clock);
+	res = enable_rng_clock();
 	if (res)
 		goto err;
-
-	if (stm32_rng->bus_clock) {
-		res = clk_enable(stm32_rng->bus_clock);
-		if (res) {
-			clk_disable(stm32_rng->clock);
-			goto err;
-		}
-	}
 
 	version = io_read32(get_base() + RNG_VERR);
 	DMSG("RNG version Major %u, Minor %u",
@@ -673,9 +665,7 @@ static TEE_Result stm32_rng_probe(const void *fdt, int offs,
 	if (res)
 		goto err_clock;
 
-	clk_disable(stm32_rng->clock);
-	if (stm32_rng->bus_clock)
-		clk_disable(stm32_rng->bus_clock);
+	disable_rng_clock();
 
 	if (IS_ENABLED(CFG_STM32MP15)) {
 		/*
@@ -708,9 +698,7 @@ static TEE_Result stm32_rng_probe(const void *fdt, int offs,
 	return TEE_SUCCESS;
 
 err_clock:
-	clk_disable(stm32_rng->clock);
-	if (stm32_rng->bus_clock)
-		clk_disable(stm32_rng->bus_clock);
+	disable_rng_clock();
 err:
 	free(stm32_rng);
 	stm32_rng = NULL;
