@@ -284,6 +284,7 @@ CFG_STM32_TIM ?= y
 CFG_STM32_UART ?= y
 CFG_STM32_VREFBUF ?= y
 CFG_STM32_CPU_OPP ?= y
+CFG_STM32MP_PROVISIONING ?= y
 CFG_STM32MP1_REGULATOR_IOD ?= y
 CFG_STPMIC1 ?= y
 CFG_SYSCFG ?= y
@@ -301,6 +302,12 @@ endif
 ifeq ($(CFG_STPMIC1),y)
 $(call force,CFG_STM32_I2C,y)
 $(call force,CFG_STM32_GPIO,y)
+endif
+
+# Provisioning support for BSEC shadow memory is dedicated to insecure
+# development configuration only.
+ifeq ($(CFG_STM32MP_PROVISIONING),y)
+$(call force,CFG_WARN_INSECURE,y,Required by CFG_STM32MP_PROVISIONING)
 endif
 
 #SAES and CRYP cannot be register at the same time in the crypto framework
