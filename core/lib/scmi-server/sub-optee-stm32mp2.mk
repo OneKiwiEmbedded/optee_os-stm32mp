@@ -1,4 +1,4 @@
-incdirs_ext-y += $(scpfw-path)/product/optee-stm32mp2/include
+scpfw-incdirs-y += $(scpfw-path)/product/optee-stm32mp2/include
 
 srcs-y += $(scpfw-path)/product/optee-stm32mp2/fw/config_all.c
 
