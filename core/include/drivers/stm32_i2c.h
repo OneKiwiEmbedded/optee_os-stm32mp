@@ -10,6 +10,7 @@
 #include <drivers/stm32_gpio.h>
 #include <kernel/dt.h>
 #include <kernel/dt_driver.h>
+#include <kernel/mutex_pm_aware.h>
 #include <mm/core_memprot.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -113,6 +114,7 @@ struct i2c_cfg {
  * @saved_frequency: Saved frequency value if already computed
  * @sec_cfg: I2C registers configuration storage
  * @pinctrl: Reference to PINCTRLs
+ * @mu: Protection on concurrent access to the I2C bus considering PM context
  */
 struct i2c_handle_s {
 	struct io_pa_va base;
@@ -126,6 +128,7 @@ struct i2c_handle_s {
 	struct i2c_cfg sec_cfg;
 	struct stm32_pinctrl_list *pinctrl_list;
 	bool secure_i2c;
+	struct mutex_pm_aware mu;
 };
 
 /* STM32 specific defines */

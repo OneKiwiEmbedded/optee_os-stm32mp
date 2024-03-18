@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
 /*
- * Copyright (c) 2017-2019, STMicroelectronics
+ * Copyright (c) 2017-2024, STMicroelectronics
  *
  * The driver API is defined in header file stm32_i2c.h.
  *
@@ -19,6 +19,7 @@
 #include <kernel/delay.h>
 #include <kernel/dt.h>
 #include <kernel/dt_driver.h>
+#include <kernel/mutex_pm_aware.h>
 #include <kernel/panic.h>
 #include <libfdt.h>
 #include <stdbool.h>
@@ -751,6 +752,8 @@ int stm32_i2c_init(struct i2c_handle_s *hi2c,
 	vaddr_t base = 0;
 	uint32_t val = 0;
 
+	mutex_pm_aware_init(&hi2c->mu);
+
 	rc = i2c_setup_timing(hi2c, i2c_pdata, &timing);
 	if (rc)
 		return rc;
@@ -1065,11 +1068,15 @@ static int i2c_write(struct i2c_handle_s *hi2c, struct i2c_request *request,
 	if (request->mode != I2C_MODE_MASTER && request->mode != I2C_MODE_MEM)
 		return -1;
 
-	if (hi2c->i2c_state != I2C_STATE_READY)
-		return -1;
-
 	if (!p_data || !size)
 		return -1;
+
+	mutex_pm_aware_lock(&hi2c->mu);
+
+	if (hi2c->i2c_state != I2C_STATE_READY) {
+		mutex_pm_aware_unlock(&hi2c->mu);
+		return -1;
+	}
 
 	clk_enable(hi2c->clock);
 
@@ -1159,6 +1166,7 @@ static int i2c_write(struct i2c_handle_s *hi2c, struct i2c_request *request,
 
 bail:
 	clk_disable(hi2c->clock);
+	mutex_pm_aware_unlock(&hi2c->mu);
 
 	return rc;
 }
@@ -1201,8 +1209,12 @@ int stm32_i2c_read_write_membyte(struct i2c_handle_s *hi2c, uint16_t dev_addr,
 	uint8_t *p_buff = p_data;
 	uint32_t event_mask = 0;
 
-	if (hi2c->i2c_state != I2C_STATE_READY || !p_data)
+	mutex_pm_aware_lock(&hi2c->mu);
+
+	if (hi2c->i2c_state != I2C_STATE_READY || !p_data) {
+		mutex_pm_aware_unlock(&hi2c->mu);
 		return -1;
+	}
 
 	clk_enable(hi2c->clock);
 
@@ -1262,6 +1274,7 @@ int stm32_i2c_read_write_membyte(struct i2c_handle_s *hi2c, uint16_t dev_addr,
 
 bail:
 	clk_disable(hi2c->clock);
+	mutex_pm_aware_unlock(&hi2c->mu);
 
 	return rc;
 }
@@ -1288,11 +1301,15 @@ static int i2c_read(struct i2c_handle_s *hi2c, struct i2c_request *request,
 	if (request->mode != I2C_MODE_MASTER && request->mode != I2C_MODE_MEM)
 		return -1;
 
-	if (hi2c->i2c_state != I2C_STATE_READY)
-		return -1;
-
 	if (!p_data || !size)
 		return -1;
+
+	mutex_pm_aware_lock(&hi2c->mu);
+
+	if (hi2c->i2c_state != I2C_STATE_READY) {
+		mutex_pm_aware_unlock(&hi2c->mu);
+		return -1;
+	}
 
 	clk_enable(hi2c->clock);
 
@@ -1377,6 +1394,7 @@ static int i2c_read(struct i2c_handle_s *hi2c, struct i2c_request *request,
 
 bail:
 	clk_disable(hi2c->clock);
+	mutex_pm_aware_unlock(&hi2c->mu);
 
 	return rc;
 }
@@ -1416,8 +1434,12 @@ bool stm32_i2c_is_device_ready(struct i2c_handle_s *hi2c, uint32_t dev_addr,
 	unsigned int i2c_trials = 0U;
 	bool rc = false;
 
-	if (hi2c->i2c_state != I2C_STATE_READY)
+	mutex_pm_aware_lock(&hi2c->mu);
+
+	if (hi2c->i2c_state != I2C_STATE_READY) {
+		mutex_pm_aware_unlock(&hi2c->mu);
 		return rc;
+	}
 
 	clk_enable(hi2c->clock);
 
@@ -1492,6 +1514,7 @@ bool stm32_i2c_is_device_ready(struct i2c_handle_s *hi2c, uint32_t dev_addr,
 
 bail:
 	clk_disable(hi2c->clock);
+	mutex_pm_aware_unlock(&hi2c->mu);
 
 	return rc;
 }
