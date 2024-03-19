@@ -113,7 +113,8 @@ struct i2c_cfg {
  * @saved_timing: Saved timing value if already computed
  * @saved_frequency: Saved frequency value if already computed
  * @sec_cfg: I2C registers configuration storage
- * @pinctrl: Reference to PINCTRLs
+ * @pinctrl_list: Reference to PINCTRLs
+ * @secure_i2c: True if I2C bus is secure, false otherwise
  * @mu: Protection on concurrent access to the I2C bus considering PM context
  */
 struct i2c_handle_s {
