@@ -81,6 +81,7 @@
 #define FMC_BASE			0x48200000
 #define PCIE_BASE			0x48400000
 #define A35SSC_BASE			0x48800000
+#define DBGMCU_BASE			0x4a010000ul
 #define GIC_BASE			0x4ac00000ul
 #define DDR_BASE			0x80000000ul
 
@@ -92,6 +93,9 @@
 #define GIC_SIZE			0x80000
 #define GICC_OFFSET			0x20000
 #define GICD_OFFSET			0x10000
+
+/* DBGCMU */
+#define DBGMCU_SIZE			0x10000
 
 /* SGI list */
 #define GIC_SEC_SGI_1			9

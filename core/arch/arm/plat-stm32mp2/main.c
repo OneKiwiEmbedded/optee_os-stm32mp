@@ -55,6 +55,8 @@ register_phys_mem_pgdir(MEM_AREA_IO_SEC, SAHB_BASE, SAHB_SIZE);
 
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
 
+register_phys_mem_pgdir(MEM_AREA_IO_NSEC, DBGMCU_BASE, DBGMCU_SIZE);
+
 register_ddr(DDR_BASE, CFG_DRAM_SIZE);
 
 /* Map beginning SRAM1 as read write for BSEC shadow */
