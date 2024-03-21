@@ -33,6 +33,7 @@ set(SCP_ENABLE_IPO_INIT FALSE)
 
 list(PREPEND SCP_MODULE_PATHS "${CMAKE_CURRENT_LIST_DIR}/../module/stm32_regu_consumer")
 list(PREPEND SCP_MODULE_PATHS "${CMAKE_CURRENT_LIST_DIR}/../module/psu_optee_regulator")
+list(PREPEND SCP_MODULE_PATHS "${CMAKE_CURRENT_LIST_DIR}/../module/stm32_pd")
 
 # The order of the modules in the following list is the order in which the
 # modules are initialized, bound, started during the pre-runtime phase.
@@ -52,6 +53,9 @@ list(APPEND SCP_MODULES "voltage-domain")
 list(APPEND SCP_MODULES "scmi-voltage-domain")
 list(APPEND SCP_MODULES "psu-optee-regulator")
 list(APPEND SCP_MODULES "psu")
+list(APPEND SCP_MODULES "power-domain")
+list(APPEND SCP_MODULES "stm32-pd")
+list(APPEND SCP_MODULES "scmi-power-domain")
 list(APPEND SCP_MODULES "dvfs")
 list(APPEND SCP_MODULES "scmi-perf")
 list(APPEND SCP_MODULES "optee-console")
