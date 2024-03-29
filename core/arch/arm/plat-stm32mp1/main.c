@@ -75,6 +75,24 @@ register_phys_mem(MEM_AREA_IO_SEC, MCUSRAM_BASE, MCUSRAM_SIZE);
 #define _ID2STR(id)		(#id)
 #define ID2STR(id)		_ID2STR(id)
 
+/* Firewall configuration for secure privilege RW access only */
+static const struct stm32_firewall_cfg sec_cfg[] = {
+	{ FWLL_SEC_RW | FWLL_MASTER(0) },
+	{ }, /* Null terminated */
+};
+
+/* Firewall configuration for Cortex-M unsecure RW access only */
+static const struct stm32_firewall_cfg mcu_cfg[] = {
+	{ FWLL_NSEC_UNPRIV_RW | FWLL_MASTER(1) },
+	{ }, /* Null terminated */
+};
+
+/* Firewall configuration for shared resources */
+static const struct stm32_firewall_cfg shared_cfg[] = {
+	{ FWLL_NSEC_RW | FWLL_MASTER(0) },
+	{ }, /* Null terminated */
+};
+
 static TEE_Result platform_banner(void)
 {
 #ifdef CFG_EMBED_DTB
@@ -281,10 +299,6 @@ DECLARE_KEEP_PAGER(sgi9_reset_handler);
 static TEE_Result init_stm32mp1_drivers(void)
 {
 	TEE_Result res = TEE_ERROR_GENERIC;
-	const struct stm32_firewall_cfg sec_cfg[] = {
-		{ FWLL_SEC_RW | FWLL_MASTER(0) },
-		{ }, /* Null terminated */
-	};
 
 	/* Without secure DTB support, some drivers must be inited */
 	if (!IS_ENABLED(CFG_EMBED_DTB))
@@ -772,4 +786,39 @@ TEE_Result stm32_activate_internal_tamper(int id)
 	}
 
 	return res;
+}
+
+TEE_Result stm32_reconfigure_region(const void *fdt, int phandle,
+				    const void **cfg)
+{
+	int node = fdt_node_offset_by_phandle(fdt, phandle);
+	paddr_t reg_base = 0;
+	size_t reg_size = 0;
+
+	if (!cfg)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (node < 0) {
+		EMSG("Could not get node offset for mem region, res=%d", node);
+		return TEE_ERROR_GENERIC;
+	}
+
+	reg_base = _fdt_reg_base_address(fdt, node);
+	reg_size = _fdt_reg_size(fdt, node);
+	if (reg_base == DT_INFO_INVALID_REG ||
+	    reg_size == DT_INFO_INVALID_REG_SIZE)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (*cfg)
+		return stm32_firewall_set_config(reg_base, reg_size, *cfg);
+
+	/* Get secure access on the memory region */
+	if (!stm32_firewall_check_access(reg_base, reg_size, mcu_cfg))
+		*cfg = &mcu_cfg;
+	else if (!stm32_firewall_check_access(reg_base, reg_size, shared_cfg))
+		*cfg = &shared_cfg;
+	else
+		return TEE_ERROR_ACCESS_DENIED;
+
+	return stm32_firewall_set_config(reg_base, reg_size, sec_cfg);
 }

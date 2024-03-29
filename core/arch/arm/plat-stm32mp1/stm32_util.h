@@ -62,6 +62,22 @@ static inline void stm32mp_dump_core_registers(bool panicking __unused) { }
 /* Platform util for PMIC support */
 bool stm32mp_with_pmic(void);
 
+/**
+ * stm32_reconfigure_region() - Allows to reconfigure a memory region.
+ * @fdt:	Device tree file to work on
+ * @phandle:	Phandle of the memory region
+ * @cfg:	When @cfg points to a NULL reference, the function grants
+ *		access to OP-TEE compartment and returns in @cfg a pointer
+ *		to the previously applied configuration, to be later used in a
+ *		call to the same API function.
+ *		When @cfg points to a non-NULL reference, that reference is
+ *		expected to be obtained from a previous call to this function
+ *		and contains the configuration to be applied. In such case, the
+ *		function sets @cfg output value to a NULL reference.
+ */
+TEE_Result stm32_reconfigure_region(const void *fdt, int phandle,
+				    const void **cfg);
+
 /* Power management service */
 #ifdef CFG_PSCI_ARM32
 void stm32mp_register_online_cpu(void);
