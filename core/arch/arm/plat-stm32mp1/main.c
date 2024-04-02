@@ -17,6 +17,12 @@
 #include <drivers/stm32_uart.h>
 #include <drivers/stm32mp_dt_bindings.h>
 #include <drivers/stm32mp1_pwr.h>
+#ifdef CFG_STM32MP15
+#include <drivers/stm32mp1_rcc.h>
+#endif
+#ifdef CFG_STM32MP13
+#include <drivers/stm32mp13_rcc.h>
+#endif
 #include <io.h>
 #include <kernel/boot.h>
 #include <kernel/delay.h>
@@ -730,9 +736,18 @@ TEE_Result stm32_activate_internal_tamper(int id)
 		res = TEE_SUCCESS;
 		break;
 
+	case INT_TAMP3: /* LSE monitoring (LSECSS) */
+		if (io_read32(stm32_rcc_base() + RCC_BDCR) & RCC_BDCR_LSECSSON)
+			res = TEE_SUCCESS;
+		break;
+
+	case INT_TAMP4: /* HSE monitoring (HSECSS) */
+		if (io_read32(stm32_rcc_base() + RCC_OCENSETR) &
+		    RCC_OCENR_HSECSSON)
+			res = TEE_SUCCESS;
+		break;
+
 #ifdef CFG_STM32MP13
-	case INT_TAMP3:
-	case INT_TAMP4:
 	case INT_TAMP5:
 	case INT_TAMP6:
 	case INT_TAMP7:
@@ -746,8 +761,6 @@ TEE_Result stm32_activate_internal_tamper(int id)
 		break;
 #endif
 #ifdef CFG_STM32MP15
-	case INT_TAMP3:
-	case INT_TAMP4:
 	case INT_TAMP5:
 	case INT_TAMP8:
 		res = TEE_SUCCESS;
