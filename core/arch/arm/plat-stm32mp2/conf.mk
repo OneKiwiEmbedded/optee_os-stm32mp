@@ -62,7 +62,11 @@ $(call force,CFG_DRIVERS_CLK_DT,y)
 $(call force,CFG_DRIVERS_CLK_EARLY_PROBE,y)
 $(call force,CFG_REGULATOR_DRIVERS,y)
 $(call force,CFG_REGULATOR_FIXED,y)
+$(call force,CFG_SCMI_MSG_DRIVERS,n)
 $(call force,CFG_SCMI_PTA,y)
+$(call force,CFG_SCMI_SCPFW,y)
+$(call force,CFG_SCMI_SCPFW_PRODUCT,optee-stm32mp2)
+$(call force,CFG_SCMI_SERVER_REGULATOR_CONSUMER,y)
 $(call force,CFG_STM32_FIREWALL,y)
 $(call force,CFG_STM32_HSE_MONITORING,y)
 $(call force,CFG_STM32_REGULATOR_GPIO,y)
@@ -173,37 +177,6 @@ ifeq ($(CFG_HWRNG_PTA),y)
 $(call force,CFG_STM32_RNG,y,Mandated by CFG_HWRNG_PTA)
 $(call force,CFG_WITH_SOFTWARE_PRNG,n,Mandated by CFG_HWRNG_PTA)
 CFG_HWRNG_QUALITY ?= 1024
-endif
-
-# Default enable SCMI PTA support with SCP firmware SCMI server
-CFG_SCMI_SCPFW ?= y
-
-# CFG_SCMI_MSG_DRIVERS will soon be deprecated for this platform.
-# Until then, enable it as fallback configuration if CFG_SCMI_SCPFW is disabled.
-ifneq ($(CFG_SCMI_SCPFW),y)
-$(call force,CFG_SCMI_MSG_DRIVERS,y)
-endif
-ifeq ($(CFG_SCMI_MSG_DRIVERS)-$(CFG_SCMI_SCPFW),y-y)
-$(error CFG_SCMI_MSG_DRIVERS and CFG_SCMI_SCPFW are exclusive)
-endif
-ifeq ($(filter $(CFG_SCMI_MSG_DRIVERS) $(CFG_SCMI_SCPFW),y),)
-$(error One of CFG_SCMI_MSG_DRIVERS or CFG_SCMI_SCPFW must be enabled)
-endif
-
-ifeq ($(CFG_SCMI_SCPFW),y)
-$(call force,CFG_SCMI_SCPFW_PRODUCT,optee-stm32mp2)
-$(call force,CFG_SCMI_SERVER_REGULATOR_CONSUMER,y)
-endif
-
-CFG_SCMI_MSG_DRIVERS ?= n
-ifeq ($(CFG_SCMI_MSG_DRIVERS),y)
-$(call force,CFG_SCMI_MSG_CLOCK,y)
-$(call force,CFG_SCMI_MSG_PERF_DOMAIN,y)
-$(call force,CFG_SCMI_MSG_RESET_DOMAIN,y)
-$(call force,CFG_SCMI_MSG_REGULATOR_CONSUMER,y)
-$(call force,CFG_SCMI_MSG_SHM_MSG,y)
-$(call force,CFG_SCMI_MSG_SMT,n)
-$(call force,CFG_SCMI_MSG_VOLTAGE_DOMAIN,y)
 endif
 
 # Enable reset control
