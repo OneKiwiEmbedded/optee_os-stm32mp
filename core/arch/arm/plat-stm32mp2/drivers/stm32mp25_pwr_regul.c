@@ -7,6 +7,7 @@
 #include <compiler.h>
 #include <drivers/regulator.h>
 #include <drivers/stm32mp25_pwr.h>
+#include <drivers/stm32_rif.h>
 #include <initcall.h>
 #include <io.h>
 #include <kernel/delay.h>
@@ -94,6 +95,10 @@ struct pwr_regu {
 	bool is_an_iod;
 	bool need_supply;
 	bool keep_monitor_on;
+	/* rifsc_filtering_id is used to disable filtering when
+	 * accessing to the register
+	 */
+	uint8_t rifsc_filtering_id;
 };
 
 static TEE_Result pwr_enable_reg(const struct regul_desc *desc)
@@ -101,11 +106,19 @@ static TEE_Result pwr_enable_reg(const struct regul_desc *desc)
 	struct pwr_regu *regu = (struct pwr_regu *)desc->driver_data;
 	uintptr_t pwr_reg = stm32_pwr_base() + regu->enable_reg;
 	uint64_t to = U(0);
+	bool cid_filtering_enabled = false;
 
 	FMSG("%s: enable", desc->node_name);
 
 	if (!regu->enable_mask)
 		return TEE_SUCCESS;
+
+	if (regu->rifsc_filtering_id)
+		cid_filtering_enabled =
+			stm32_rifsc_cid_is_enabled(regu->rifsc_filtering_id);
+
+	if (cid_filtering_enabled)
+		stm32_rifsc_cid_disable(regu->rifsc_filtering_id);
 
 	io_setbits32(pwr_reg, regu->enable_mask);
 
@@ -118,14 +131,20 @@ static TEE_Result pwr_enable_reg(const struct regul_desc *desc)
 		if (io_read32(pwr_reg) & regu->ready_mask)
 			break;
 
-	if (!(io_read32(pwr_reg) & regu->ready_mask))
+	if (!(io_read32(pwr_reg) & regu->ready_mask)) {
+		if (cid_filtering_enabled)
+			stm32_rifsc_cid_enable(regu->rifsc_filtering_id);
 		return TEE_ERROR_GENERIC;
+	}
 
 	io_setbits32(pwr_reg, regu->valid_mask);
 
 	/* Do not keep the voltage monitor enabled except for GPU */
 	if (!regu->keep_monitor_on)
 		io_clrbits32(pwr_reg, regu->enable_mask);
+
+	if (cid_filtering_enabled)
+		stm32_rifsc_cid_enable(regu->rifsc_filtering_id);
 
 	return TEE_SUCCESS;
 }
@@ -134,14 +153,26 @@ static void pwr_disable_reg(const struct regul_desc *desc)
 {
 	struct pwr_regu *regu = (struct pwr_regu *)desc->driver_data;
 	uintptr_t pwr_reg = stm32_pwr_base() + regu->enable_reg;
+	bool cid_filtering_enabled = false;
 
 	FMSG("%s: disable", desc->node_name);
+
+	if (regu->rifsc_filtering_id)
+		cid_filtering_enabled =
+			stm32_rifsc_cid_is_enabled(regu->rifsc_filtering_id);
+
+	if (cid_filtering_enabled)
+		stm32_rifsc_cid_disable(regu->rifsc_filtering_id);
 
 	if (regu->enable_mask) {
 		/* Make sure the previous operations are visible */
 		dsb();
 		io_clrbits32(pwr_reg, regu->enable_mask | regu->valid_mask);
 	}
+
+	if (cid_filtering_enabled)
+		stm32_rifsc_cid_enable(regu->rifsc_filtering_id);
+
 }
 
 static TEE_Result pwr_set_state(const struct regul_desc *desc, bool enable)
@@ -450,6 +481,7 @@ static struct pwr_regu pwr_regulators[] = {
 		.valid_mask = PWR_CR12_GPUSV,
 		.need_supply = true,
 		.keep_monitor_on = true,
+		.rifsc_filtering_id = STM32MP25_RIFSC_GPU_ID,
 	 },
 };
 
