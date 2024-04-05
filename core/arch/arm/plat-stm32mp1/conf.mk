@@ -163,7 +163,6 @@ $(call force,CFG_STM32_GPIO,y)
 $(call force,CFG_STM32_HSE_MONITORING,y)
 $(call force,CFG_STM32MP_CLK_CORE,y)
 $(call force,CFG_STM32MP1_OPTEE_IN_SYSRAM,n)
-$(call force,CFG_STM32MP1_SCMI_SIP,n)
 $(call force,CFG_STM32MP1_SHARED_RESOURCES,n)
 $(call force,CFG_STM32MP13_CLK,y)
 $(call force,CFG_STM32MP13_RSTCTRL,y)
@@ -349,7 +348,6 @@ CFG_STM32MP_PANIC_ON_TZC_PERM_VIOLATION ?= y
 # SiP/OEM service for non-secure world
 CFG_STM32_LOWPOWER_SIP ?= $(CFG_PM)
 CFG_STM32_PWR_SIP ?= $(CFG_STM32MP15)
-$(call force,CFG_STM32MP1_SCMI_SIP,n,Deprecated)
 
 # Enable BSEC Pseudo TA for fuses access management
 CFG_BSEC_PTA ?= y
@@ -406,7 +404,7 @@ $(call force,CFG_HWRNG_QUALITY,1024)
 endif
 
 # Provision enough threads to pass xtest
-ifneq (,$(filter y,$(CFG_SCMI_PTA) $(CFG_STM32MP1_SCMI_SIP)))
+ifeq ($(CFG_SCMI_PTA),y)
 ifeq ($(CFG_WITH_PAGER),y)
 CFG_NUM_THREADS ?= 3
 else
