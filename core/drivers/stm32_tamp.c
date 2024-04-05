@@ -230,8 +230,6 @@
 #define TAMP_ACTIVE			BIT(17)
 #define TAMP_IN_DT			BIT(18)
 
-#define TAMP_EXTI_WKUP			U(18)
-
 /*
  * RIF miscellaneous
  */
@@ -2034,9 +2032,11 @@ static TEE_Result stm32_tamp_probe(const void *fdt, int node,
 	}
 
 	if (stm32_tamp.pdata.is_wakeup_source) {
+		struct stm32_tamp_compat *compat = stm32_tamp.pdata.compat;
+
 		if (IS_ENABLED(CFG_STM32_EXTI))
 			stm32_exti_enable_wake(stm32_tamp.pdata.exti,
-					       TAMP_EXTI_WKUP);
+					       compat->exti_wakeup_line);
 		else
 			IMSG("TAMP event are not configured as wakeup source");
 	}
@@ -2089,6 +2089,7 @@ static const struct stm32_tamp_compat mp13_compat = {
 		.ext_tamp_size = ARRAY_SIZE(ext_tamp_mp13),
 		.pin_map = pin_map_mp13,
 		.pin_map_size = ARRAY_SIZE(pin_map_mp13),
+		.exti_wakeup_line = U(18),
 };
 
 static const struct stm32_tamp_compat mp15_compat = {
@@ -2100,6 +2101,7 @@ static const struct stm32_tamp_compat mp15_compat = {
 		.ext_tamp_size = ARRAY_SIZE(ext_tamp_mp15),
 		.pin_map = pin_map_mp15,
 		.pin_map_size = ARRAY_SIZE(pin_map_mp15),
+		.exti_wakeup_line = U(18),
 };
 
 static const struct stm32_tamp_compat mp25_compat = {
@@ -2117,6 +2119,7 @@ static const struct stm32_tamp_compat mp25_compat = {
 		.ext_tamp_size = ARRAY_SIZE(ext_tamp_mp25),
 		.pin_map = pin_map_mp25,
 		.pin_map_size = ARRAY_SIZE(pin_map_mp25),
+		.exti_wakeup_line = U(21),
 };
 
 static const struct dt_device_match stm32_tamp_match_table[] = {
