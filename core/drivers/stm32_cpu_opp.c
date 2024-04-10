@@ -47,7 +47,7 @@ struct cpu_dvfs {
  * @scp_clock: Clock instance exposed to scp-firmware SCMI DVFS
  * @scp_rdev: Regulator instance exposed to scp-firmware SCMI DVFS
  * @cpu_opp_levels_mv: Helper array for struct regul_ops::list_voltages
- * @default_opp: Default OPP state
+ * @default_opp_freq: Operating point frequency to use during initialization
  */
 struct cpu_opp {
 	unsigned int current_opp;
@@ -59,7 +59,7 @@ struct cpu_opp {
 	struct clk scp_clock;
 	struct rdev scp_rdev;
 	uint16_t *cpu_opp_levels_mv;
-	unsigned int default_opp;
+	unsigned int default_opp_freq;
 #endif
 };
 
@@ -349,6 +349,7 @@ static void setup_scmi_server_resources(void)
 	unsigned int *dvfs_mv = NULL;
 	size_t opp = 0;
 	struct cpu_dvfs *sorted_dvfs = NULL;
+	unsigned int scpfw_default_opp_index = UINT_MAX;
 
 	/*
 	 * Sort operating points by increasing frequencies as expected by
@@ -400,13 +401,18 @@ static void setup_scmi_server_resources(void)
 	for (opp = 0; opp < cpu_opp.opp_count; opp++) {
 		dvfs_khz[opp] = sorted_dvfs[opp].freq_khz;
 		dvfs_mv[opp] = sorted_dvfs[opp].volt_mv;
+		if (cpu_opp.default_opp_freq == dvfs_khz[opp])
+			scpfw_default_opp_index = opp;
 	}
+	if (scpfw_default_opp_index == UINT_MAX)
+		panic();
 
 	free(sorted_dvfs);
 
 	res = scmi_scpfw_cfg_add_dvfs(0 /*agent*/, 0 /*channel*/, 0 /*domain*/,
 				      &cpu_opp.scp_rdev, &cpu_opp.scp_clock,
-				      dvfs_khz, dvfs_mv, cpu_opp.opp_count);
+				      dvfs_khz, dvfs_mv, cpu_opp.opp_count,
+				      scpfw_default_opp_index);
 	if (res)
 		panic();
 
@@ -492,13 +498,21 @@ static TEE_Result cpu_opp_pm(enum pm_op op, unsigned int pm_hint __unused,
 			panic();
 
 		/* Get current OPP or fallback to default */
-		for (opp = 0; opp < cpu_opp.opp_count; opp++)
+		for (opp = 0; opp < cpu_opp.opp_count; opp++) {
 			if (cur_khz == cpu_opp.dvfs[opp].freq_khz  &&
 			    cur_mv == cpu_opp.dvfs[opp].volt_mv)
 				break;
+		}
 		if (opp >= cpu_opp.opp_count) {
 			EMSG("Unexpected OPP state, select default");
-			opp = cpu_opp.default_opp;
+
+			for (opp = 0; opp < cpu_opp.opp_count; opp++)
+				if (cpu_opp.default_opp_freq ==
+				    cpu_opp.dvfs[opp].freq_khz)
+					break;
+
+			if (opp >= cpu_opp.opp_count)
+				panic();
 		}
 
 		DMSG("Suspend to OPP %u", opp);
@@ -624,7 +638,7 @@ static TEE_Result stm32_cpu_opp_get_dt_subnode(const void *fdt, int node)
 
 	/* Select the max "st,opp-default" node as current OPP */
 #ifdef CFG_SCPFW_MOD_DVFS
-	cpu_opp.default_opp = cpu_opp.current_opp;
+	cpu_opp.default_opp_freq = freq_khz_opp_def;
 #endif
 	clk_cpu = clk_get_rate(cpu_opp.clock);
 	assert(clk_cpu);
