@@ -29,6 +29,8 @@ TEE_Result stm32_risaf_reconfigure(paddr_t base);
 TEE_Result stm32_risaf_reconfigure_region(uintptr_t addr, size_t len,
 					  void **conf);
 
+void stm32_risaf_clear_illegal_access_flags(void);
+
 #ifdef CFG_TEE_CORE_DEBUG
 void stm32_risaf_dump_erroneous_data(void);
 #else /* CFG_TEE_CORE_DEBUG */
