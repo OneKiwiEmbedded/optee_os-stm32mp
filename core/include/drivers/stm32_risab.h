@@ -15,6 +15,8 @@ struct mem_region {
 	size_t size;
 };
 
+void stm32_risab_clear_illegal_access_flags(void);
+
 #if TRACE_LEVEL >= TRACE_INFO
 void stm32_risab_dump_erroneous_data(void);
 #else /* TRACE_LEVEL >= TRACE_INFO */
