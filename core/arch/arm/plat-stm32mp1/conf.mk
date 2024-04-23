@@ -117,6 +117,39 @@ ifeq ($(call cfg-all-enabled,CFG_STM32MP15 CFG_STM32MP13),y)
 $(error Only one of CFG_STM32MP15 CFG_STM32MP13 must be enabled)
 endif
 
+# CFG_STM32MP_PROFILE selects the profile of the services embedded
+# in OP-TEE.
+
+ifeq ($(CFG_STM32MP13),y)
+# STM32MP13: default select secure_and_system_services.
+# Alternate system_services is supported.
+CFG_STM32MP_PROFILE ?= secure_and_system_services
+endif #CFG_STM32MP13
+
+ifeq ($(CFG_STM32MP15),y)
+# STM32MP15: default select system_services, OP-TEE executes in DDR
+# (i.e. CFG_STM32MP1_OPTEE_IN_SYSRAM=n).
+# Alternate secure_and_system_services executes in SRAM
+# (i.e. CFG_STM32MP1_OPTEE_IN_SYSRAM=y).
+ifeq ($(CFG_STM32MP1_OPTEE_IN_SYSRAM),y)
+$(call force,CFG_STM32MP_PROFILE,secure_and_system_services)
+endif
+CFG_STM32MP_PROFILE ?= system_services
+ifeq ($(CFG_STM32MP_PROFILE),secure_and_system_services)
+$(call force,CFG_STM32MP1_OPTEE_IN_SYSRAM,y,Required by secure_and_system_services profile)
+else
+$(call force,CFG_STM32MP1_OPTEE_IN_SYSRAM,n,Required by system_services profile)
+endif
+endif #CFG_STM32MP15
+
+ifeq ($(filter $(CFG_STM32MP_PROFILE),system_services secure_and_system_services),)
+$(error CFG_STM32MP_PROFILE shall be one of system_services or secure_and_system_services)
+endif
+
+ifeq ($(CFG_STM32MP_PROFILE),system_services)
+include $(platform-dir)/conf.disable-secure-services.mk
+endif
+
 ifneq ($(filter $(CFG_EMBED_DTB_SOURCE_FILE),$(flavorlist-no_cryp)),)
 $(call force,CFG_STM32_CRYP,n)
 $(call force,CFG_STM32_PKA,n)
@@ -158,7 +191,6 @@ $(call force,CFG_CORE_RESERVED_SHM,n)
 $(call force,CFG_DRIVERS_ADC,y)
 $(call force,CFG_DRIVERS_CLK_FIXED,y)
 $(call force,CFG_SECONDARY_INIT_CNTFRQ,n)
-$(call force,CFG_STM32_ADC,y)
 $(call force,CFG_STM32_EXTI,y)
 $(call force,CFG_STM32_GPIO,y)
 $(call force,CFG_STM32_HSE_MONITORING,y)
@@ -170,6 +202,7 @@ $(call force,CFG_STM32MP13_RSTCTRL,y)
 $(call force,CFG_TEE_CORE_NB_CORE,1)
 $(call force,CFG_WITH_NSEC_GPIOS,n)
 CFG_STM32MP_OPP_COUNT ?= 2
+CFG_STM32_ADC ?= y
 CFG_WITH_PAGER ?= n
 CFG_WITH_TUI ?= y
 CFG_SCMI_SCPFW ?= n
@@ -208,11 +241,6 @@ CFG_STM32MP1_OPTEE_IN_SYSRAM ?= n
 ifeq ($(CFG_STM32MP1_OPTEE_IN_SYSRAM),y)
 $(call force,CFG_WITH_PAGER,y)
 CFG_STM32MP15_HUK ?= y
-CFG_WITH_USER_TA ?= y
-else
-CFG_STM32MP15_HUK ?= n
-CFG_WITH_PAGER ?= n
-CFG_WITH_USER_TA ?= n
 endif
 ifeq ($(CFG_WITH_PAGER),y)
 CFG_WITH_LPAE ?= n
@@ -294,8 +322,6 @@ CFG_WITH_SOFTWARE_PRNG ?= n
 ifeq ($(CFG_WITH_SOFTWARE_PRNG),y)
 $(call force,CFG_STM32_RNG,y,Mandated by CFG_WITH_SOFTWARE_PRNG)
 endif
-
-CFG_WITH_TRNG ?= $(CFG_STM32_RNG)
 
 ifeq ($(CFG_STM32_ETZPC),y)
 $(call force,CFG_STM32_FIREWALL,y)
@@ -397,9 +423,7 @@ CFG_PKCS11_TA ?= y
 # Default use stm32mp1 PM mailbox context version 3
 CFG_STM32MP1_PM_CONTEXT_VERSION ?= 3
 
-ifneq ($(CFG_WITH_SOFTWARE_PRNG),y)
-CFG_HWRNG_PTA ?= y
-endif
+CFG_HWRNG_PTA ?= $(CFG_STM32_RNG)
 ifeq ($(CFG_HWRNG_PTA),y)
 $(call force,CFG_STM32_RNG,y,Mandated by CFG_HWRNG_PTA)
 $(call force,CFG_WITH_SOFTWARE_PRNG,n,Mandated by CFG_HWRNG_PTA)
