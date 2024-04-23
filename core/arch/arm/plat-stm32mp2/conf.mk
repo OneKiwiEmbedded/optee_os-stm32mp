@@ -35,6 +35,17 @@ endif
 # CFG_STM32MP25 must be enabled
 $(call force,CFG_STM32MP25,y)
 
+# CFG_STM32MP_PROFILE selects the profile of the services embedded in OP-TEE
+CFG_STM32MP_PROFILE ?= secure_and_system_services
+
+ifeq ($(filter $(CFG_STM32MP_PROFILE),system_services secure_and_system_services),)
+$(error CFG_STM32MP_PROFILE shall be one of system_services or secure_and_system_services)
+endif
+
+ifeq ($(CFG_STM32MP_PROFILE),system_services)
+include $(platform-dir)/conf.disable-secure-services.mk
+endif
+
 $(call force,CFG_ARM64_core,y)
 $(call force,CFG_WITH_LPAE,y)
 # arm-v8 platforms
@@ -66,7 +77,7 @@ $(call force,CFG_STM32_FIREWALL,y)
 $(call force,CFG_STM32_HSE_MONITORING,y)
 $(call force,CFG_STM32_REGULATOR_GPIO,y)
 $(call force,CFG_STM32MP_CLK_CORE,y)
-$(call force,CFG_STM32MP_REMOTEPROC,y)
+CFG_STM32MP_REMOTEPROC ?= y
 $(call force,CFG_STM32MP25_CLK,y)
 $(call force,CFG_STM32MP25_RSTCTRL,y)
 
@@ -167,7 +178,7 @@ RPROC_SIGN_KEY ?= keys/default.pem
 endif
 
 # Default enable HWRNG PTA support
-CFG_HWRNG_PTA ?= y
+CFG_HWRNG_PTA ?= $(CFG_STM32_RNG)
 ifeq ($(CFG_HWRNG_PTA),y)
 $(call force,CFG_STM32_RNG,y,Mandated by CFG_HWRNG_PTA)
 $(call force,CFG_WITH_SOFTWARE_PRNG,n,Mandated by CFG_HWRNG_PTA)
@@ -178,6 +189,12 @@ endif
 ifeq ($(CFG_STM32MP25_RSTCTRL),y)
 $(call force,CFG_DRIVERS_RSTCTRL,y)
 $(call force,CFG_STM32_RSTCTRL,y)
+endif
+
+# Enable BSEC Pseudo TA for fuses access management
+CFG_BSEC_PTA ?= $(CFG_STM32_BSEC3)
+ifeq ($(CFG_BSEC_PTA),y)
+$(call force,CFG_STM32_BSEC3,y,Mandated by CFG_BSEC_PTA)
 endif
 
 # Enable Early TA NVMEM for provisioning management
