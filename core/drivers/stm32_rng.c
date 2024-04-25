@@ -86,7 +86,6 @@ struct stm32_rng_instance {
 	struct rstctrl *rstctrl;
 	const struct stm32_rng_driver_data *ddata;
 	unsigned int lock;
-	unsigned int refcount;
 	uint64_t error_to_ref;
 	uint32_t pm_cr;
 	uint32_t pm_health;
@@ -761,7 +760,6 @@ static TEE_Result stm32_rng_release(void)
 {
 	if (stm32_rng && stm32_rng->release_post_boot) {
 		DMSG("Release RNG driver");
-		assert(!stm32_rng->refcount);
 		free(stm32_rng);
 		stm32_rng = NULL;
 	}
