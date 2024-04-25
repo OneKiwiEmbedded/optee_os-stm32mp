@@ -360,7 +360,7 @@ static TEE_Result init_rng(void)
 	return TEE_SUCCESS;
 }
 
-static TEE_Result stm32_rng_read(uint8_t *out, size_t size)
+static TEE_Result __maybe_unused stm32_rng_read(uint8_t *out, size_t size)
 {
 	TEE_Result rc = TEE_ERROR_GENERIC;
 	bool burst_timeout = false;
@@ -445,7 +445,9 @@ void plat_rng_init(void)
 
 	DMSG("PRNG seeded with RNG");
 }
-#else
+#endif
+
+#ifdef CFG_WITH_TRNG
 TEE_Result hw_get_random_bytes(void *out, size_t size)
 {
 	return stm32_rng_read(out, size);
@@ -688,7 +690,12 @@ static TEE_Result stm32_rng_probe(const void *fdt, int offs,
 	assert(stm32_rng->ddata->has_power_optim ==
 	       stm32_rng->ddata->has_cond_reset);
 
-	register_pm_core_service_cb(stm32_rng_pm, &stm32_rng, "rng-service");
+	if (!stm32_rng->release_post_boot) {
+		if (IS_ENABLED(CFG_WITH_TRNG))
+			hw_register_get_random_bytes();
+		register_pm_core_service_cb(stm32_rng_pm, &stm32_rng,
+					    "rng-service");
+	}
 
 	return TEE_SUCCESS;
 
