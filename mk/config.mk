@@ -109,6 +109,18 @@ CFG_MSG_LONG_PREFIX_MASK ?= 0x1a
 # Otherwise, you need to implement hw_get_random_bytes() for your platform
 CFG_WITH_SOFTWARE_PRNG ?= y
 
+# TRNG configuration
+# CFG_WITH_TRNG is exclusively enabled towards CFG_WITH_SOFTWARE_PRNG
+ifneq ($(CFG_WITH_SOFTWARE_PRNG),y)
+CFG_WITH_TRNG ?= y
+else
+CFG_WITH_TRNG ?= n
+endif
+
+ifeq ($(call cfg-all-enabled,CFG_WITH_SOFTWARE_PRNG CFG_WITH_TRNG),y)
+$(error CFG_WITH_SOFTWARE_PRNG and CFG_WITH_TRNG are exclusive)
+endif
+
 # Number of threads
 CFG_NUM_THREADS ?= 2
 
