@@ -294,6 +294,8 @@ ifeq ($(CFG_WITH_SOFTWARE_PRNG),y)
 $(call force,CFG_STM32_RNG,y,Mandated by CFG_WITH_SOFTWARE_PRNG)
 endif
 
+CFG_WITH_TRNG ?= $(CFG_STM32_RNG)
+
 ifeq ($(CFG_STM32_ETZPC),y)
 $(call force,CFG_STM32_FIREWALL,y)
 endif
