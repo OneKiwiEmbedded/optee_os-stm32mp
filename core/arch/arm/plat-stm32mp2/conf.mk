@@ -32,13 +32,8 @@ endif
 CFG_EMBED_DTB_SOURCE_FILE ?= $(flavor_dts_file-$(PLATFORM_FLAVOR))
 endif
 
-ifneq ($(filter $(CFG_EMBED_DTB_SOURCE_FILE),$(flavorlist-MP25)),)
+# CFG_STM32MP25 must be enabled
 $(call force,CFG_STM32MP25,y)
-endif
-
-ifeq ($(filter $(CFG_STM32MP25),y),)
-$(error STM32 Platform must be defined)
-endif
 
 $(call force,CFG_ARM64_core,y)
 $(call force,CFG_WITH_LPAE,y)
