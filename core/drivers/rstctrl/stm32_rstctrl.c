@@ -229,6 +229,7 @@ struct rstctrl_ops stm32_rstctrl_clr_offset_ops = {
 	.assert_level = stm32_reset_assert_clr_offset,
 	.deassert_level = stm32_reset_deassert_clr_offset,
 };
+DECLARE_KEEP_PAGER(stm32_rstctrl_clr_offset_ops);
 
 #ifdef CFG_EMBED_DTB
 static struct rstctrl *stm32_rstctrl_get_dev(struct dt_pargs *arg,
