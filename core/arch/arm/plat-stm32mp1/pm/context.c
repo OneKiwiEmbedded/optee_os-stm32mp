@@ -9,6 +9,7 @@
 #include <crypto/crypto.h>
 #include <drivers/clk.h>
 #include <drivers/gic.h>
+#include <drivers/stm32_rng.h>
 #include <drivers/stm32_rtc.h>
 #include <drivers/stm32mp_dt_bindings.h>
 #include <drivers/stm32mp1_ddrc.h>
@@ -408,6 +409,15 @@ static void save_teeram_in_ddr(void)
 	if (!stm32mp_supports_hw_cryp())
 		panic();
 
+	if (IS_ENABLED(CFG_WITH_SOFTWARE_PRNG)) {
+		/*
+		 * Re-init STM32 RNG1 (including reset cycle) since non-secure
+		 * world may have loaded a weak configuration.
+		 */
+		if (stm32_rng_init())
+			panic();
+	}
+
 	assert(clk_is_enabled(pm_clocks.bkpsram) &&
 	       clk_is_enabled(pm_clocks.cryp1));
 
@@ -424,7 +434,7 @@ static void save_teeram_in_ddr(void)
 	ctx->rcc_base = (uint32_t)phys_to_virt(RCC_BASE, MEM_AREA_IO_SEC, 1);
 	ctx->stgen_base = (uint32_t)phys_to_virt(STGEN_BASE, MEM_AREA_IO_SEC, 1);
 
-	if (crypto_rng_read((uint8_t *)ccm->key, sizeof(ccm->key)))
+	if (stm32_rng_read((uint8_t *)ccm->key, sizeof(ccm->key)))
 		panic();
 
 	assert(((PM_CCM_TAG_FLAGS & ~0x38U) | (PM_CCM_Q_FLAGS & ~0x07U)) == 0);
@@ -432,7 +442,7 @@ static void save_teeram_in_ddr(void)
 	COMPILE_TIME_ASSERT(TEE_RAM_PH_SIZE > UINT16_MAX);
 	COMPILE_TIME_ASSERT(TEE_RAM_PH_SIZE < UINT32_MAX);
 
-	if (crypto_rng_read((uint8_t *)ccm->ctr1, sizeof(ccm->ctr1)))
+	if (stm32_rng_read((uint8_t *)ccm->ctr1, sizeof(ccm->ctr1)))
 		panic();
 
 	ccm->ctr1[0] &= GENMASK_32(24, 0);
