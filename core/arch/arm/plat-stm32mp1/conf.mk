@@ -16,15 +16,19 @@ flavor_dts_file-157F_EV1 = stm32mp157f-ev1.dts
 
 flavor_dts_file-135F_DK = stm32mp135f-dk.dts
 flavor_dts_file-13XXAE_SOM_256 = stm32mp13xxae-som-r1x256v10.dts
+flavor_dts_file-135X_MYIR256M = stm32mp135x-256m.dts
+flavor_dts_file-135X_MYIR512M = stm32mp135x-512m.dts
 
-flavorlist-256M = $(flavor_dts_file-13XXAE_SOM_256)
+flavorlist-256M = $(flavor_dts_file-13XXAE_SOM_256) \
+			   $(flavor_dts_file-135X_MYIR256M)
 
 flavorlist-cryp-512M = $(flavor_dts_file-157C_DK2) \
 		       $(flavor_dts_file-157F_DK2) \
 		       $(flavor_dts_file-135F_DK)
 
 flavorlist-no_cryp-512M = $(flavor_dts_file-157A_DK1) \
-			  $(flavor_dts_file-157D_DK1)
+			  $(flavor_dts_file-157D_DK1) \
+			  $(flavor_dts_file-135X_MYIR512M)
 
 flavorlist-cryp-1G = $(flavor_dts_file-157C_DHCOM_PDK2) \
 		     $(flavor_dts_file-157C_ED1) \
