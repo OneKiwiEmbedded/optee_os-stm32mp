@@ -70,7 +70,7 @@ flavorlist-MP15 = $(flavor_dts_file-157A_DHCOR_AVENGER96) \
 		  $(flavor_dts_file-157F_ED1) \
 		  $(flavor_dts_file-157F_EV1)
 
-flavorlist-MP13 = $(flavor_dts_file-135F_DK)
+flavorlist-MP13 = $(flavor_dts_file-135F_DK) \
 		  $(flavor_dts_file-135D_DK) \
 		  $(flavor_dts_file-13XXAE_SOM_256) \
 		  $(flavor_dts_file-135X_MYIR256M) \
