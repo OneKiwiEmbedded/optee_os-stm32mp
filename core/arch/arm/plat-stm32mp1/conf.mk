@@ -15,6 +15,9 @@ flavor_dts_file-157F_ED1 = stm32mp157f-ed1.dts
 flavor_dts_file-157F_EV1 = stm32mp157f-ev1.dts
 
 flavor_dts_file-135F_DK = stm32mp135f-dk.dts
+flavor_dts_file-13XXAE_SOM_256 = stm32mp13xxae-som-r1x256v10.dts
+
+flavorlist-256M = $(flavor_dts_file-13XXAE_SOM_256)
 
 flavorlist-cryp-512M = $(flavor_dts_file-157C_DK2) \
 		       $(flavor_dts_file-157F_DK2) \
@@ -207,6 +210,10 @@ CFG_EARLY_TA_COMPRESS ?= n
 
 # Embed public part of this key in OP-TEE OS
 CFG_RPROC_SIGN_KEY ?= keys/default_rproc.pem
+
+ifneq ($(filter $(CFG_EMBED_DTB_SOURCE_FILE),$(flavorlist-256M)),)
+CFG_DRAM_SIZE    ?= 0x10000000
+endif
 
 ifneq ($(filter $(CFG_EMBED_DTB_SOURCE_FILE),$(flavorlist-512M)),)
 CFG_DRAM_SIZE    ?= 0x20000000
