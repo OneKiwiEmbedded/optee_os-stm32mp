@@ -19,7 +19,7 @@
 
 / {
 	model = "OneKiwi STM32MP13xxAE SOM v1.0";
-	compatible = "st,stm32mp135f-dk", "st,stm32mp135";
+	compatible = "st,stm32mp13xxae-som", "st,stm32mp135";
 
 	aliases {
 		serial0 = &uart4;
