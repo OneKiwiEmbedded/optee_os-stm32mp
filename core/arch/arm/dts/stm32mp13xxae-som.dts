@@ -15,7 +15,7 @@
 #include <dt-bindings/soc/stm32mp13-tzc400.h>
 #include "stm32mp135.dtsi"
 #include "stm32mp13xf.dtsi"
-#include "stm32mp13-pinctrl.dtsi"
+#include "stm32mp13-kiwi-pin.dtsi"
 
 / {
 	model = "OneKiwi STM32MP13xxAE SOM v1.0";
