@@ -33,6 +33,16 @@
 	model = "OneKiwi STM32MP13xxAE SOM v1.0";
 	compatible = "st,stm32mp13xxae-som", "st,stm32mp135";
 
+	cpu0-opp-table {
+		opp-1000000000 {
+			opp-hz = /bits/ 64 <1000000000>;
+			opp-microvolt = <1350000>;
+			opp-supported-hw = <0x2>;
+			st,opp-default;
+		};
+		/delete-node/ opp-650000000;
+	};
+
 	aliases {
 		serial0 = &uart4;
 	};
@@ -102,7 +112,6 @@
 	vref-supply = <&vdd>;
 	status = "okay";
 
-	/*
 	adc2: adc@0 {
 		status = "okay";
 
@@ -110,7 +119,7 @@
 			reg = <15>;
 			label = "vbat";
 		};
-	};*/
+	};
 };
 
 &bsec {
@@ -201,7 +210,7 @@
 	i2c-scl-rising-time-ns = <185>;
 	i2c-scl-falling-time-ns = <20>;
 	clock-frequency = <400000>;
-	status = "disabled";
+	status = "okay";
 };
 
 &iwdg1 {
@@ -444,10 +453,10 @@
 
 &tamp {
 	status = "okay";
+	/*
 	st,tamp_passive_nb_sample = <4>;
 	st,tamp_passive_sample_clk_div = <16384>;
 
-	/*
 	tamp_passive@2 {
 		pinctrl-0 = <&tamp0_in2_pin_a>;
 		status = "okay";
