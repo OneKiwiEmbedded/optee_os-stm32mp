@@ -157,27 +157,6 @@
 	cpu-supply = <&vddcore>;
 };
 
-&i2c2 {
-	pinctrl-names = "default", "sleep";
-	pinctrl-0 = <&i2c2_pins_x>;
-	pinctrl-1 = <&i2c2_sleep_pins_x>;
-	i2c-scl-rising-time-ns = <100>;
-	i2c-scl-falling-time-ns = <7>;
-	status = "okay";
-	/delete-property/dmas;
-	/delete-property/dma-names;
-
-	mipi_dsi_hdmi: lt8912b@48 {
-		compatible = "lontium,lt8912b";
-		reg = <0x48>;
-		//ddc-i2c-bus = <&i2c2>;
-		reset-gpios = <&gpioh 10 GPIO_ACTIVE_LOW>;
-		hpd-gpios = <&gpioh 15 GPIO_ACTIVE_HIGH>;
-		//swap-mipi-pn;
-		status = "okay";
-	};
-};
-
 &i2c4 {
 	compatible = "st,stm32mp15-i2c-non-secure";
 	pinctrl-names = "default", "sleep";
