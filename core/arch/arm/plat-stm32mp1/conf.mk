@@ -14,14 +14,17 @@ flavor_dts_file-157F_DK2 = stm32mp157f-dk2.dts
 flavor_dts_file-157F_ED1 = stm32mp157f-ed1.dts
 flavor_dts_file-157F_EV1 = stm32mp157f-ev1.dts
 flavor_dts_file-157C_THATICO = stm32mp157c-thatico.dts
+flavor_dts_file-15XXAB_SOM_V11 = stm32mp15xxab-som-v11.dts
 
 flavor_dts_file-135F_DK = stm32mp135f-dk.dts
 
 flavorlist-cryp-512M = $(flavor_dts_file-157C_DK2) \
 		       $(flavor_dts_file-157F_DK2) \
+		       $(flavor_dts_file-15XXAB_SOM_V11) \
 		       $(flavor_dts_file-135F_DK)
 
 flavorlist-no_cryp-512M = $(flavor_dts_file-157A_DK1) \
+			  $(flavor_dts_file-15XXAB_SOM_V11) \
 			  $(flavor_dts_file-157D_DK1)
 
 flavorlist-cryp-1G = $(flavor_dts_file-157C_DHCOM_PDK2) \
@@ -63,6 +66,7 @@ flavorlist-MP15 = $(flavor_dts_file-157A_DHCOR_AVENGER96) \
 		  $(flavor_dts_file-157D_EV1) \
 		  $(flavor_dts_file-157F_DK2) \
 		  $(flavor_dts_file-157F_ED1) \
+		  $(flavor_dts_file-15XXAB_SOM_V11) \
 		  $(flavor_dts_file-157F_EV1)
 
 flavorlist-MP13 = $(flavor_dts_file-135F_DK)
