@@ -27,7 +27,7 @@
 
 	memory@c0000000 {
 		device_type = "memory";
-		reg = <0xC0000000 0x20000000>;
+		reg = <0xc0000000 0x20000000>;
 	};
 
 	reserved-memory {
@@ -59,8 +59,8 @@
 			no-map;
 		};
 
-		gpu_reserved: gpu@e8000000 {
-			reg = <0xe8000000 0x8000000>;
+		gpu_reserved: gpu@d4000000 {
+			reg = <0xd4000000 0x4000000>;
 			no-map;
 		};
 	};
@@ -88,30 +88,43 @@
 };
 
 &adc {
-	/* ANA0, ANA1 are dedicated pins and don't need pinctrl: only in6. */
-	pinctrl-0 = <&adc1_in6_pins_a>;
 	pinctrl-names = "default";
+	pinctrl-0 = <&adc12_ain_pins_a>, <&adc12_usb_cc_pins_a>;
 	vdd-supply = <&vdd>;
-	vdda-supply = <&vdda>;
-	vref-supply = <&vdda>;
+	vdda-supply = <&vdd>;
+	vref-supply = <&vrefbuf>;
 	status = "disabled";
 	adc1: adc@0 {
-		st,adc-channels = <0 1 6>;
-		/* 16.5 ck_cycles sampling time */
-		st,min-sample-time-nsecs = <400>;
+		/*
+		 * Type-C USB_PWR_CC1 & USB_PWR_CC2 on in18 & in19.
+		 * Use at least 5 * RC time, e.g. 5 * (Rp + Rd) * C:
+		 * 5 * (56 + 47kOhms) * 5pF => 2.5us.
+		 * Use arbitrary margin here (e.g. 5us).
+		 */
+		st,min-sample-time-nsecs = <5000>;
+		/* AIN connector, USB Type-C CC1 & CC2 */
+		st,adc-channels = <0 1 6 13 18 19>;
+		status = "disabled";
+	};
+	adc2: adc@100 {
+		/* AIN connector, USB Type-C CC1 & CC2 */
+		st,adc-channels = <0 1 2 6 18 19>;
+		st,min-sample-time-nsecs = <5000>;
 		status = "disabled";
 	};
 };
 
 &bsec {
-	board_id: board_id@ec {
-		reg = <0xec 0x4>;
-		st,non-secure-otp;
-	};
-
 	huk_otp: huk-otp@f0 {
 		reg = <0xf0 0x10>;
 	};
+};
+
+&cec {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&cec_pins_b>;
+	pinctrl-1 = <&cec_sleep_pins_b>;
+	status = "disabled";
 };
 
 &clk_hse {
@@ -128,19 +141,6 @@
 
 &crc1 {
 	status = "disabled";
-};
-
-&dac {
-	pinctrl-names = "default";
-	pinctrl-0 = <&dac_ch1_pins_a &dac_ch2_pins_a>;
-	vref-supply = <&vdda>;
-	status = "disabled";
-	dac1: dac@1 {
-		status = "disabled";
-	};
-	dac2: dac@2 {
-		status = "disabled";
-	};
 };
 
 &dsi {
