@@ -16,16 +16,19 @@ flavor_dts_file-157F_EV1 = stm32mp157f-ev1.dts
 
 flavor_dts_file-135F_DK = stm32mp135f-dk.dts
 flavor_dts_file-13XXAE_SOM = stm32mp13xxae-som.dts
+flavor_dts_file-131DAE_SOM = stm32mp131dae-som.dts
 
 #flavorlist-256M = $(flavor_dts_file-135F_256M)
 
 flavorlist-cryp-512M = $(flavor_dts_file-157C_DK2) \
 		       $(flavor_dts_file-157F_DK2) \
 		       $(flavor_dts_file-135F_DK) \
+			   $(flavor_dts_file-131DAE_SOM) \
 			   $(flavor_dts_file-13XXAE_SOM)
 
 flavorlist-no_cryp-512M = $(flavor_dts_file-157A_DK1) \
 			  $(flavor_dts_file-157D_DK1) \
+			  $(flavor_dts_file-131DAE_SOM) \
 			  $(flavor_dts_file-13XXAE_SOM)
 
 flavorlist-cryp-1G = $(flavor_dts_file-157C_DHCOM_PDK2) \
@@ -67,6 +70,7 @@ flavorlist-MP15 = $(flavor_dts_file-157A_DHCOR_AVENGER96) \
 		  $(flavor_dts_file-157F_EV1)
 
 flavorlist-MP13 = $(flavor_dts_file-135F_DK) \
+		  $(flavor_dts_file-131DAE_SOM) \
 		  $(flavor_dts_file-13XXAE_SOM)
 
 ifneq ($(PLATFORM_FLAVOR),)
